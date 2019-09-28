@@ -75,7 +75,6 @@ class Ui_MainWindow(object):
         self.sourceIP_comboBox.setMinimumSize(QtCore.QSize(150, 0))
         self.sourceIP_comboBox.setEditable(False)
         self.sourceIP_comboBox.setCurrentText("")
-        self.sourceIP_comboBox.setModelColumn(2)
         self.sourceIP_comboBox.setObjectName("sourceIP_comboBox")
         self.horizontalLayout_7.addWidget(self.sourceIP_comboBox)
         self.verticalLayout_4.addLayout(self.horizontalLayout_7)
