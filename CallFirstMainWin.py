@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-
-import sys 	
+import sys, os
+if hasattr(sys, 'frozen'):
+    os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
+	
 from PyQt5.QtWidgets import QApplication , QMainWindow
 from firstMainWin import *
 
