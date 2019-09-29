@@ -349,16 +349,19 @@
               <item>
                <widget class="QSpinBox" name="testDataSend_frequency_spinBox">
                 <property name="suffix">
-                 <string>次/s</string>
+                 <string>次/秒</string>
                 </property>
                 <property name="prefix">
                  <string/>
                 </property>
                 <property name="maximum">
-                 <number>9999</number>
+                 <number>999999</number>
+                </property>
+                <property name="singleStep">
+                 <number>500</number>
                 </property>
                 <property name="value">
-                 <number>100</number>
+                 <number>500</number>
                 </property>
                </widget>
               </item>

@@ -17,7 +17,12 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
         self.udp_receive_socket_test_data = None
         self.dest_address = None
         self.sever_th = None
+        self.count_th = None
         self.client_th = None
+        self.lock_new_receive_num = threading.Lock()
+        self.new_receive_num = 0
+        self.t = 0
+        self.time_lag = 0.1
 
     def testdata_udp_server_start(self, port):
         """
@@ -37,6 +42,11 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
             self.sever_th.start()
             msg = 'TestData UDP服务端正在监听端口:{}\n'.format(port)
             print(msg)
+            self.testdata_udp_report_receive_data_sum_on_time()
+
+    def testdata_udp_report_receive_data_sum_on_time(self):
+        self.count_th = threading.Thread(target=self.testdata_udp_report_concurrency)
+        self.count_th.start()
 
     def testdata_udp_client_start(self, destIP, destPort):
         """
@@ -58,19 +68,29 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
     def testdata_udp_client_stop(self):
         self.run_sending = False
 
+    def testdata_udp_report_concurrency(self):
+        while True:
+            self.lock_new_receive_num.acquire()
+            if self.new_receive_num > 0:
+                current_sum = int(self.testDataReceive_label.text()[:-5])
+                current_sum += self.new_receive_num
+                # self.testDataReceive_label.setText(str(current_sum) + 'Bytes')
+                self.signal_receive_test_data_msg.emit(str(current_sum) + 'Bytes')
+                self.new_receive_num = 0
+            self.lock_new_receive_num.release()
+            time.sleep(1)
+
     def testdata_udp_server_concurrency(self):
         """
         线程函数，持续监听UDP通信
         :return:
         """
         while True:
-            recv_msg, recv_addr = self.udp_receive_socket_test_data.recvfrom(1024)
+            recv_msg, recv_addr = self.udp_receive_socket_test_data.recvfrom(10240)
             recv_msg_len = len(recv_msg)
-            current_sum = int(self.testDataReceive_label.text()[:-5])
-            current_sum += recv_msg_len
-#            self.testDataReceive_label.setText(str(current_sum) + 'Bytes')
-            self.signal_receive_test_data_msg.emit(str(current_sum) + 'Bytes')
-
+            self.lock_new_receive_num.acquire()
+            self.new_receive_num += recv_msg_len
+            self.lock_new_receive_num.release()
 
     def testdata_udp_client_concurrency(self):
         """
@@ -82,33 +102,38 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
         data = bytes(data_len)
         udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         while self.run_sending:
-            self.testdata_udp_send(udp_socket, data)
-            current_sum = int(self.testDataSend_label.text()[:-5])
-            current_sum += data_len
-            self.testDataSend_label.setText(str(current_sum) + 'Bytes')
-            try:
-                time.sleep(1/send_frequency)
+            # 发送频率大于10，分10次发送，每次sleep 0.1秒
+            if send_frequency > 10:
                 t = time.time()
-                print (int(round(t * 1000)))    #毫秒级时间戳
-#                print (int(round(t * 1000000))) #微秒级时间戳
-            except Exception as ret:
-                print(ret)
+                if self.t != 0:
+                    real_time_range = round(t*1000) - round(self.t*1000)
+                    if not (real_time_range > 950 and real_time_range < 1050):
+                        self.time_lag = (1000 - (real_time_range - 1000))/10000
+                else:
+                    self.time_lag = 0.1
+                self.t = t
+                print(int(round(t*1000)))
+                print(self.time_lag)
+                for iLoop in range(10):
+                    for i in range(int(send_frequency/10)):
+                        self.testdata_udp_send(udp_socket, data)
+                    if send_frequency % 10 != 0 and iLoop == 9:
+                        for i in range(int(send_frequency % 10)):
+                            self.testdata_udp_send(udp_socket, data)
+                    if self.time_lag > 0:
+                        time.sleep(self.time_lag)
+                    else:
+                        time.sleep(0.01)
 
-#         while self.run_sending:
-#             for i in range(send_frequency):
-#                 self.testdata_udp_send(udp_socket, data)
-#             current_sum = int(self.testDataSend_label.text()[:-5])
-#             current_sum += data_len*send_frequency
-#             self.testDataSend_label.setText(str(current_sum) + 'Bytes')
-#             try:
-#                 time.sleep(1)
-#                 t = time.time()
-#                 print (int(round(t * 1000)))    #毫秒级时间戳
-# #                print (int(round(t * 1000000))) #微秒级时间戳
-#             except Exception as ret:
-#                 print(ret)
-
-
+            # 发送频率小于10，直接发完sleep 1秒
+            else:
+                for i in range(send_frequency):
+                    self.testdata_udp_send(udp_socket, data)
+                    time.sleep(1)
+            # 1秒更新一次发送总数
+            current_sum = int(self.testDataSend_label.text()[:-5])
+            current_sum += data_len*send_frequency
+            self.testDataSend_label.setText(str(current_sum) + 'Bytes')
 
 
     def testdata_udp_send(self, udp_socket, data):
