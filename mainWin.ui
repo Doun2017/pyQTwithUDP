@@ -112,6 +112,12 @@
         <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0">
          <item alignment="Qt::AlignLeft">
           <widget class="QLabel" name="label_10">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>源地址:</string>
            </property>
@@ -142,13 +148,6 @@
         <layout class="QHBoxLayout" name="horizontalLayout_15">
          <item>
           <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>测试数据:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="testDataReceive_label">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -156,12 +155,31 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>158Bytes</string>
+            <string>接收测试数据:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="testDataReceive_label">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>0Bytes</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="testDataReceive_clear_pushButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>清空</string>
            </property>
@@ -172,7 +190,7 @@
        <item>
         <widget class="QLabel" name="label_13">
          <property name="text">
-          <string>报文:</string>
+          <string>接收报文:</string>
          </property>
         </widget>
        </item>
@@ -188,7 +206,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>语音:   ...</string>
+          <string>接收语音:   ...</string>
          </property>
         </widget>
        </item>
@@ -201,7 +219,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>文件:</string>
+          <string>接收文件:</string>
          </property>
         </widget>
        </item>
@@ -297,7 +315,7 @@
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,1,0,0">
+             <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="0,1,0,1">
               <item>
                <widget class="QLabel" name="label_18">
                 <property name="text">
@@ -347,7 +365,7 @@
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="0,0,1,0">
+             <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="0,1,0,0">
               <item>
                <widget class="QPushButton" name="testDataSend_start_pushButton">
                 <property name="text">
@@ -358,13 +376,16 @@
               <item>
                <widget class="QLabel" name="testDataSend_label">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>158Bytes</string>
+                 <string>0Bytes</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
                 </property>
                </widget>
               </item>
@@ -388,11 +409,11 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="1,0,1">
+          <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,1,0">
            <item>
             <widget class="QLabel" name="label_8">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -407,6 +428,12 @@
            </item>
            <item>
             <widget class="QPushButton" name="textSend_pushButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>发送</string>
              </property>

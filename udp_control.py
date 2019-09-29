@@ -1,5 +1,6 @@
-import mainWin
 import socket
+
+import mainWin
 
 
 class UdpControLogic(mainWin.Ui_MainWindow):

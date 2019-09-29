@@ -4,10 +4,10 @@ import configparser
 if hasattr(sys, 'frozen'):
     os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
 from PyQt5.QtWidgets import QApplication, QMainWindow
-import udp_control
+import udp_control, udp_test_data
 
 
-class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
+class MyMainWindow(QMainWindow, udp_control.UdpControLogic, udp_test_data.UdpTestDataLogic):
     def __init__(self, parent=None):    
         super(MyMainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -15,17 +15,14 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         # 信号连接
         self.frequency_pushButton.clicked.connect(self.sendFrequency)
         self.synchronization_pushButton.clicked.connect(self.sendSynchronization)
+        self.testDataSend_start_pushButton.clicked.connect(self.startSendTestData)
+        self.testDataSend_stop_pushButton.clicked.connect(self.stopSendTestData)
+        self.testDataSend_clear_pushButton.clicked.connect(self.clearSendTestData)
+        self.testDataReceive_clear_pushButton.clicked.connect(self.clearReceiveTestData)
         # 启动UDP
         self.control_udp_client_start(self.configIP, self.configPort)
-
-    def connect(self, ):
-        """
-        控件信号-槽的设置
-        :param : QDialog类创建的对象
-        :return: None
-        """
-        # 如需传递参数可以修改为connect(lambda: self.click(参数))
-        super(MainWindow, self).connect()
+        self.testdata_udp_server_start(6001)
+        self.signal_receive_test_data_msg.connect(self.update_test_data_receive_sum)
 
     def readIniFile(self):
         config = configparser.ConfigParser()    # 注意大小写
@@ -51,6 +48,23 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.sourceIP_comboBox.addItem(self.IP5)
         self.sourceIP_comboBox.addItem(self.IP6)
 
+    def getCheckedIP(self):
+        if self.IP1_radioButton.isChecked():
+            return self.IP1_radioButton.text()
+        if self.IP2_radioButton.isChecked():
+            return self.IP2_radioButton.text()
+        if self.IP3_radioButton.isChecked():
+            return self.IP3_radioButton.text()
+        if self.IP4_radioButton.isChecked():
+            return self.IP4_radioButton.text()
+        if self.IP5_radioButton.isChecked():
+            return self.IP5_radioButton.text()
+        if self.IP6_radioButton.isChecked():
+            return self.IP6_radioButton.text()
+        if self.broadcast_radioButton.isChecked():
+            return self.broadcast_radioButton.text()
+        return ""
+
     def sendFrequency(self):
         print("sendFrequency")
         self.control_udp_send_frequency()
@@ -58,6 +72,27 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
     def sendSynchronization(self):
         print("synchronization")
         self.control_udp_send_synchronization()
+        
+    def startSendTestData(self):
+        print("startSendTestData")
+        self.testdata_udp_client_start(self.getCheckedIP(), 6001)
+        self.testDataSend_start_pushButton.setEnabled(False)
+
+    def stopSendTestData(self):
+        print("stopSendTestData")
+        self.testdata_udp_client_stop()
+        self.testDataSend_start_pushButton.setEnabled(True)
+
+    def clearSendTestData(self):
+        print("clearSendTestData")
+        self.testDataSend_label.setText('0Bytes')
+
+    def clearReceiveTestData(self):
+        print("clearSendTestData")
+        self.testDataReceive_label.setText('0Bytes')
+
+    def update_test_data_receive_sum(self, msg):
+        self.testDataReceive_label.setText(msg)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
