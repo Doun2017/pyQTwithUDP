@@ -59,7 +59,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                 msg = '发送失败\n'
                 print(msg)
 
-    def udp_close(self):
+    def control_udp_close(self):
         """
         功能函数，关闭网络连接的方法
         :return:

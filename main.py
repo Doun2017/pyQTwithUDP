@@ -94,6 +94,20 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic, udp_test_data.UdpTes
     def update_test_data_receive_sum(self, msg):
         self.testDataReceive_label.setText(msg)
 
+
+
+    def closeEvent(self, event):
+        """
+        重写closeEvent方法，实现dialog窗体关闭时执行一些代码
+        :param event: close()触发的事件
+        :return: None
+        """
+        # 连接时根据用户选择的功能调用函数
+        self.control_udp_close()
+        self.testdata_udp_close_all()
+
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     myWin = MyMainWindow()
