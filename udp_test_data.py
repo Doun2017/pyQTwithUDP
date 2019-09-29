@@ -82,18 +82,34 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
         data = bytes(data_len)
         udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         while self.run_sending:
-            for i in range(send_frequency):
-                self.testdata_udp_send(udp_socket, data)
+            self.testdata_udp_send(udp_socket, data)
             current_sum = int(self.testDataSend_label.text()[:-5])
-            current_sum += data_len*send_frequency
+            current_sum += data_len
             self.testDataSend_label.setText(str(current_sum) + 'Bytes')
             try:
-                time.sleep(1)
+                time.sleep(1/send_frequency)
                 t = time.time()
                 print (int(round(t * 1000)))    #毫秒级时间戳
 #                print (int(round(t * 1000000))) #微秒级时间戳
             except Exception as ret:
                 print(ret)
+
+#         while self.run_sending:
+#             for i in range(send_frequency):
+#                 self.testdata_udp_send(udp_socket, data)
+#             current_sum = int(self.testDataSend_label.text()[:-5])
+#             current_sum += data_len*send_frequency
+#             self.testDataSend_label.setText(str(current_sum) + 'Bytes')
+#             try:
+#                 time.sleep(1)
+#                 t = time.time()
+#                 print (int(round(t * 1000)))    #毫秒级时间戳
+# #                print (int(round(t * 1000000))) #微秒级时间戳
+#             except Exception as ret:
+#                 print(ret)
+
+
+
 
     def testdata_udp_send(self, udp_socket, data):
         """
