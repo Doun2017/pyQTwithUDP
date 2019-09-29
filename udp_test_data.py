@@ -86,7 +86,11 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
         :return:
         """
         while True:
-            recv_msg, recv_addr = self.udp_receive_socket_test_data.recvfrom(10240)
+            try:
+                recv_msg, recv_addr = self.udp_receive_socket_test_data.recvfrom(10240)
+            except Exception as ret:
+                msg = 'udp_receive_socket_test_data 接收失败\n'
+                print(msg)
             recv_msg_len = len(recv_msg)
             self.lock_new_receive_num.acquire()
             self.new_receive_num += recv_msg_len
