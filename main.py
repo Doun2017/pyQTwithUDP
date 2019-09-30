@@ -4,10 +4,11 @@ import configparser
 if hasattr(sys, 'frozen'):
     os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
 from PyQt5.QtWidgets import QApplication, QMainWindow
-import udp_control, udp_test_data
+import udp_control, udp_test_data, udp_text
 
 
-class MyMainWindow(QMainWindow, udp_control.UdpControLogic, udp_test_data.UdpTestDataLogic):
+class MyMainWindow(QMainWindow, udp_control.UdpControLogic, 
+udp_test_data.UdpTestDataLogic, udp_text.UdpTextLogic):
     def __init__(self, parent=None):    
         super(MyMainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -19,10 +20,13 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic, udp_test_data.UdpTes
         self.testDataSend_stop_pushButton.clicked.connect(self.stopSendTestData)
         self.testDataSend_clear_pushButton.clicked.connect(self.clearSendTestData)
         self.testDataReceive_clear_pushButton.clicked.connect(self.clearReceiveTestData)
+        self.signal_receive_test_data_msg.connect(self.update_test_data_receive_sum)
+        self.signal_receive_text_msg.connect(self.update_text_receive_sum)
+        self.textSend_pushButton.clicked.connect(self.sendTextData)
         # 启动UDP
         self.control_udp_client_start(self.configIP, self.configPort)
         self.testdata_udp_server_start(6001)
-        self.signal_receive_test_data_msg.connect(self.update_test_data_receive_sum)
+        self.text_udp_server_start(6002)
 
     def readIniFile(self):
         config = configparser.ConfigParser()    # 注意大小写
@@ -94,7 +98,11 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic, udp_test_data.UdpTes
     def update_test_data_receive_sum(self, msg):
         self.testDataReceive_label.setText(msg)
 
+    def update_text_receive_sum(self, msg):
+        self.textReceive_plainTextEdit.appendPlainText(msg)
 
+    def sendTextData(self):
+        self.text_udp_client_send(self.getCheckedIP(), 6002)
 
     def closeEvent(self, event):
         """
