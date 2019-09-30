@@ -16,12 +16,12 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
         super(UdpTestDataLogic, self).__init__()
         self.udp_receive_socket_test_data = None
         self.dest_address = None
-        self.sever_th = None
+        self.test_data_sever_th = None
         self.count_th = None
-        self.client_th = None
+        self.test_data_client_th = None
         self.lock_new_receive_num = threading.Lock()
         self.new_receive_num = 0
-        self.t = 0
+        self.test_data_last_t = 0
         self.time_lag = 0.1
 
     def testdata_udp_server_start(self, port):
@@ -38,8 +38,8 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
             msg = 'TestData 请检查端口号\n'
             print(msg)
         else:
-            self.sever_th = threading.Thread(target=self.testdata_udp_server_concurrency)
-            self.sever_th.start()
+            self.test_data_sever_th = threading.Thread(target=self.testdata_udp_server_concurrency)
+            self.test_data_sever_th.start()
             msg = 'TestData UDP服务端正在监听端口:{}\n'.format(port)
             print(msg)
             self.testdata_udp_report_receive_data_sum_on_time()
@@ -56,8 +56,8 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
         try:
             self.dest_address = (destIP, destPort)
             self.run_sending = True
-            self.client_th = threading.Thread(target=self.testdata_udp_client_concurrency)
-            self.client_th.start()
+            self.test_data_client_th = threading.Thread(target=self.testdata_udp_client_concurrency)
+            self.test_data_client_th.start()
         except Exception as ret:
             msg = 'TestData 请检查目标IP，目标端口\n'
             print(msg)
@@ -109,13 +109,13 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
             # 发送频率大于10，分10次发送，每次sleep 0.1秒
             if send_frequency > 10:
                 t = time.time()
-                if self.t != 0:
-                    real_time_range = round(t*1000) - round(self.t*1000)
+                if self.test_data_last_t != 0:
+                    real_time_range = round(t*1000) - round(self.test_data_last_t*1000)
                     if not (real_time_range > 950 and real_time_range < 1050):
                         self.time_lag = (1000 - (real_time_range - 1000))/10000
                 else:
                     self.time_lag = 0.1
-                self.t = t
+                self.test_data_last_t = t
                 print(int(round(t*1000)))
                 print(self.time_lag)
                 for iLoop in range(10):
@@ -161,7 +161,7 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
         except Exception as ret:
             pass
         try:
-            stopThreading.stop_thread(self.sever_th)
+            stopThreading.stop_thread(self.test_data_sever_th)
         except Exception:
             pass
         self.testdata_udp_client_stop()

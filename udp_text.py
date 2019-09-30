@@ -15,7 +15,7 @@ class UdpTextLogic(mainWin.Ui_MainWindow):
     def __init__(self):
         super(UdpTextLogic, self).__init__()
         self.udp_receive_socket_text = None
-        self.sever_th = None
+        self.text_sever_th = None
 
     def text_udp_server_start(self, port):
         """
@@ -31,8 +31,8 @@ class UdpTextLogic(mainWin.Ui_MainWindow):
             msg = 'text 请检查端口号\n'
             print(msg)
         else:
-            self.sever_th = threading.Thread(target=self.text_udp_server_concurrency)
-            self.sever_th.start()
+            self.text_sever_th = threading.Thread(target=self.text_udp_server_concurrency)
+            self.text_sever_th.start()
             msg = 'text UDP服务端正在监听端口:{}\n'.format(port)
             print(msg)
             
@@ -48,7 +48,8 @@ class UdpTextLogic(mainWin.Ui_MainWindow):
                 msg = 'udp_receive_socket_text 接收失败\n'
                 print(msg)
             msg = recv_msg.decode('utf-8')
-            self.signal_receive_text_msg.emit(msg)
+            show_msg = str(recv_addr) + ":\n" + msg
+            self.signal_receive_text_msg.emit(show_msg)
 
     def text_udp_client_send(self, destIP, destPort):
         """
@@ -66,7 +67,7 @@ class UdpTextLogic(mainWin.Ui_MainWindow):
         else:
             msg = 'text UDP客户端端正在向:{}发送数据\n'.format(dest_address)
             print(msg)
-            
+
     def text_udp_close_all(self):
         """
         功能函数，关闭网络连接的方法
@@ -78,6 +79,6 @@ class UdpTextLogic(mainWin.Ui_MainWindow):
         except Exception as ret:
             pass
         try:
-            stopThreading.stop_thread(self.sever_th)
+            stopThreading.stop_thread(self.text_sever_th)
         except Exception:
             pass
