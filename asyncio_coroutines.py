@@ -55,6 +55,7 @@ async def play_buffer(buffer, **kwargs):
         outdata[:valid_frames] = buffer[idx:idx + valid_frames]
         outdata[valid_frames:] = 0
         idx += valid_frames
+        print(idx)
 
     stream = sd.OutputStream(callback=callback, dtype=buffer.dtype,
                              channels=buffer.shape[1], **kwargs)

@@ -68,7 +68,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
             self.udp_socket.close()
             self.link = True
             if self.link is True:
-                msg = '已断开网络\n'
+                msg = 'control 已断开网络\n'
                 print(msg)
         except Exception:
             pass

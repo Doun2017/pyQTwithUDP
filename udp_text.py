@@ -44,12 +44,15 @@ class UdpTextLogic(mainWin.Ui_MainWindow):
         while True:
             try:
                 recv_msg, recv_addr = self.udp_receive_socket_text.recvfrom(10240)
+                if recv_msg:
+                    msg = recv_msg.decode('utf-8')
+                    show_msg = str(recv_addr) + ":\n" + msg
+                    self.signal_receive_text_msg.emit(show_msg)
             except Exception as ret:
                 msg = 'udp_receive_socket_text 接收失败\n'
+                time.sleep(0.1)
                 print(msg)
-            msg = recv_msg.decode('utf-8')
-            show_msg = str(recv_addr) + ":\n" + msg
-            self.signal_receive_text_msg.emit(show_msg)
+                break
 
     def text_udp_client_send(self, destIP, destPort):
         """
@@ -82,3 +85,5 @@ class UdpTextLogic(mainWin.Ui_MainWindow):
             stopThreading.stop_thread(self.text_sever_th)
         except Exception:
             pass
+        print("text 已断开网络\n")
+

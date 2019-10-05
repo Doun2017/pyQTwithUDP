@@ -88,13 +88,13 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
         while True:
             try:
                 recv_msg, recv_addr = self.udp_receive_socket_test_data.recvfrom(10240)
+                recv_msg_len = len(recv_msg)
+                self.lock_new_receive_num.acquire()
+                self.new_receive_num += recv_msg_len
+                self.lock_new_receive_num.release()
             except Exception as ret:
                 msg = 'udp_receive_socket_test_data 接收失败\n'
                 print(msg)
-            recv_msg_len = len(recv_msg)
-            self.lock_new_receive_num.acquire()
-            self.new_receive_num += recv_msg_len
-            self.lock_new_receive_num.release()
 
     def testdata_udp_client_concurrency(self):
         """
@@ -164,4 +164,10 @@ class UdpTestDataLogic(mainWin.Ui_MainWindow):
             stopThreading.stop_thread(self.test_data_sever_th)
         except Exception:
             pass
+        try:
+            stopThreading.stop_thread(self.count_th)
+        except Exception:
+            pass
         self.testdata_udp_client_stop()
+        print("testdata 已断开网络\n")
+

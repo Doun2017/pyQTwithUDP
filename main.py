@@ -4,11 +4,11 @@ import configparser
 if hasattr(sys, 'frozen'):
     os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
 from PyQt5.QtWidgets import QApplication, QMainWindow
-import udp_control, udp_test_data, udp_text
+import udp_control, udp_test_data, udp_text, udp_audio
 
 
 class MyMainWindow(QMainWindow, udp_control.UdpControLogic, 
-udp_test_data.UdpTestDataLogic, udp_text.UdpTextLogic):
+        udp_test_data.UdpTestDataLogic, udp_text.UdpTextLogic, udp_audio.UdpAudioLogic):
     def __init__(self, parent=None):    
         super(MyMainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -23,10 +23,13 @@ udp_test_data.UdpTestDataLogic, udp_text.UdpTextLogic):
         self.signal_receive_test_data_msg.connect(self.update_test_data_receive_sum)
         self.signal_receive_text_msg.connect(self.update_text_receive_sum)
         self.textSend_pushButton.clicked.connect(self.sendTextData)
+        self.audioSend_start_pushButton.clicked.connect(self.startAudioSending)
+        self.audioSend_stop_pushButton.clicked.connect(self.stopAudioSending)
         # 启动UDP
         self.control_udp_client_start(self.configIP, self.configPort)
         self.testdata_udp_server_start(6001)
         self.text_udp_server_start(6002)
+        self.audio_udp_server_start(6666)
 
     def readIniFile(self):
         config = configparser.ConfigParser()    # 注意大小写
@@ -104,6 +107,14 @@ udp_test_data.UdpTestDataLogic, udp_text.UdpTextLogic):
     def sendTextData(self):
         self.text_udp_client_send(self.getCheckedIP(), 6002)
 
+    def startAudioSending(self):
+        self.audio_udp_client_start(self.getCheckedIP(), 6666)
+        self.audioSend_start_pushButton.setEnabled(False)
+
+    def stopAudioSending(self):
+        self.audio_udp_client_stop()
+        self.audioSend_start_pushButton.setEnabled(True)
+
     def closeEvent(self, event):
         """
         重写closeEvent方法，实现dialog窗体关闭时执行一些代码
@@ -113,6 +124,8 @@ udp_test_data.UdpTestDataLogic, udp_text.UdpTextLogic):
         # 连接时根据用户选择的功能调用函数
         self.control_udp_close()
         self.testdata_udp_close_all()
+        self.text_udp_close_all()
+        self.audio_udp_close_all()
 
 
 
