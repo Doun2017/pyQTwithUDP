@@ -1,18 +1,27 @@
 # -*- coding: utf-8 -*-
 import sys, os
+sys.path.append("Server")
+import threading
 import configparser
 if hasattr(sys, 'frozen'):
     os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow
+
 import udp_control, udp_test_data, udp_text, udp_audio
+from server import LFTPserver
+import stopThreading
 
 
 class MyMainWindow(QMainWindow, udp_control.UdpControLogic, 
         udp_test_data.UdpTestDataLogic, udp_text.UdpTextLogic, udp_audio.UdpAudioLogic):
+    signal_file_trans_msg = QtCore.pyqtSignal(str)
+
     def __init__(self, parent=None):    
         super(MyMainWindow, self).__init__(parent)
         self.setupUi(self)
         self.readIniFile()
+        self.file_server = None
         # 信号连接
         self.frequency_pushButton.clicked.connect(self.sendFrequency)
         self.synchronization_pushButton.clicked.connect(self.sendSynchronization)
@@ -25,11 +34,26 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.textSend_pushButton.clicked.connect(self.sendTextData)
         self.audioSend_start_pushButton.clicked.connect(self.startAudioSending)
         self.audioSend_stop_pushButton.clicked.connect(self.stopAudioSending)
+        self.signal_file_trans_msg.connect(self.handle_signal_file_trans_msg)
+
         # 启动UDP
         self.control_udp_client_start(self.configIP, self.configPort)
         self.testdata_udp_server_start(6001)
         self.text_udp_server_start(6002)
         self.audio_udp_server_start(6666)
+        self.file_trans_server_th = threading.Thread(target=self.file_trans_server_concurrency)
+        self.file_trans_server_th.start()
+
+        
+    def file_trans_server_concurrency(self):
+        try:
+            self.file_server = LFTPserver(server_type='control', host='', port=12345, bufferSize=2048, myMainWindow=self)
+            self.file_server.start()
+        except Exception as ret:
+            print(ret)
+
+    def emitMySignal(self, msg):
+        self.signal_file_trans_msg.emit(msg)
 
     def readIniFile(self):
         config = configparser.ConfigParser()    # 注意大小写
@@ -104,6 +128,9 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
     def update_text_receive_sum(self, msg):
         self.textReceive_plainTextEdit.appendPlainText(msg)
 
+    def handle_signal_file_trans_msg(self, msg):
+        self.fileReceive_plainTextEdit.appendPlainText(msg)
+
     def sendTextData(self):
         self.text_udp_client_send(self.getCheckedIP(), 6002)
 
@@ -126,7 +153,10 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.testdata_udp_close_all()
         self.text_udp_close_all()
         self.audio_udp_close_all()
-
+        try:
+            stopThreading.stop_thread(self.file_trans_server_th)
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

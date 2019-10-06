@@ -146,12 +146,13 @@ class UdpAudioLogic(mainWin.Ui_MainWindow):
         while True:
             try:
                 recv_msg, recv_addr = self.udp_receive_socket_audio.recvfrom(10240)
+                self.lock_new_receive_num.acquire()
+                self.new_receive_buffer += recv_msg
+                self.lock_new_receive_num.release()
             except Exception as ret:
                 msg = 'udp_receive_socket_audio 接收失败\n'
                 print(msg)
-            self.lock_new_receive_num.acquire()
-            self.new_receive_buffer += recv_msg
-            self.lock_new_receive_num.release()
+                break
 
     def audio_play_concurrency(self):
         """
