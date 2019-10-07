@@ -34,6 +34,8 @@ class LFTPserver():
         self.udpServer.bind((host, port))
         self.state = State.LISTEN # 初始状态
         self.myMainWindow = myMainWindow
+        self.servering_thread = None
+        self.servering = True
 
         # 用于三次握手
         self.client_isn = -1
@@ -56,31 +58,49 @@ class LFTPserver():
         elif self.server_type == 'control':
             self.ControlHandShake()
 
+    def stop(self):
+        self.servering = False
+        try:
+            self.udpServer.close()
+            time.sleep(0.1)
+        except Exception as ret:
+            pass
+        for s in serverList:
+            s.stop()
+
     def ControlHandShake(self):
         self.serverList = []
         self.base_port = 9000
         self.max_port = 9099
         for port in range(self.base_port, self.max_port):
             self.serverList.append(None)
-        while True:
-            log_info("等待用户连接传入")
-            message, addr = self.udpServer.recvfrom(self.bufferSize)
-            log_info(addr)
-            message = LFTPMessage.unpack(message)
-            log_info("getport：", message.getport)
-            print(message)
-            if message.getport == 1:
-                for port in range(self.base_port, self.max_port):
-                    if self.serverList[port-self.base_port] == None or self.serverList[port-self.base_port].state == State.CLOSED:
-                        log_info("用户连接传入，分配端口：", port)
-                        self.serverList[port-self.base_port] = LFTPserver(server_type='data', host='', port=port, bufferSize=2048, 
-                            myMainWindow=self.myMainWindow)
-                        threading.Thread(target=self.ServerRun, args=(self.serverList[port-self.base_port],)).start()
-                        content = {"port": port}
-                        content = json.dumps(content).encode("utf-8")
-                        resp = LFTPMessage(getport=1, content_size=len(content), content=content)
-                        self.udpServer.sendto(resp.pack(), addr)
-                        break
+        while self.servering:
+            try:
+                log_info("等待用户连接传入")
+                message, addr = self.udpServer.recvfrom(self.bufferSize)
+                log_info(addr)
+                message = LFTPMessage.unpack(message)
+                log_info("getport：", message.getport)
+                print(message)
+                if message.getport == 1:
+                    for port in range(self.base_port, self.max_port):
+                        if self.serverList[port-self.base_port] == None or self.serverList[port-self.base_port].state == State.CLOSED:
+                            log_info("用户连接传入，分配端口：", port)
+                            self.serverList[port-self.base_port] = LFTPserver(server_type='data', host='', port=port, bufferSize=2048, 
+                                myMainWindow=self.myMainWindow)
+                            self.servering_thread = threading.Thread(target=self.ServerRun, args=(self.serverList[port-self.base_port],))
+                            self.servering_thread.start()
+                            content = {"port": port}
+                            content = json.dumps(content).encode("utf-8")
+                            resp = LFTPMessage(getport=1, content_size=len(content), content=content)
+                            self.udpServer.sendto(resp.pack(), addr)
+                            break
+            except Exception as ret:
+                msg = 'file server 接收失败\n'
+                time.sleep(0.1)
+                print(msg)
+                break
+
 
     def ServerRun(self, server):
         server.start()
@@ -145,7 +165,7 @@ class LFTPserver():
 
         recvsize = 0 # 已接收数据大小
         log_info("开始接收文件 %s"%(filename))
-        self.myMainWindow.emitMySignal(str(self.client_addr) + ":\n开始接收文件 %s"%(filename))
+        self.myMainWindow.emitReceiveMessage(str(self.client_addr) + ":\n开始接收文件 %s"%(filename))
         with open(filename, 'wb') as f:
 #            pbar = ProgressBar().start()
             while True:
@@ -156,10 +176,10 @@ class LFTPserver():
                     if (recvsize == filesize):
  #                       pbar.finish()
                         log_info("接收完毕，断开连接")
-                        self.myMainWindow.emitMySignal(str(self.client_addr) + ":\n接收完毕，断开连接")
+                        self.myMainWindow.emitReceiveMessage(str(self.client_addr) + ":\n接收完毕，断开连接")
                     else:
                         log_error("连接已断开")
-                        self.myMainWindow.emitMySignal(str(self.client_addr) + ":\n连接已断开")
+                        self.myMainWindow.emitReceiveMessage(str(self.client_addr) + ":\n连接已断开")
                     break
                 message = LFTPMessage.unpack(message)
                 seqnum = message.seqnum

@@ -1,27 +1,32 @@
 # -*- coding: utf-8 -*-
 import sys, os
 sys.path.append("Server")
+sys.path.append("Client")
 import threading
 import configparser
 if hasattr(sys, 'frozen'):
     os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 
 import udp_control, udp_test_data, udp_text, udp_audio
 from server import LFTPserver
+from client import LFTPClient
 import stopThreading
 
 
 class MyMainWindow(QMainWindow, udp_control.UdpControLogic, 
         udp_test_data.UdpTestDataLogic, udp_text.UdpTextLogic, udp_audio.UdpAudioLogic):
-    signal_file_trans_msg = QtCore.pyqtSignal(str)
+    signal_file_receive_msg = QtCore.pyqtSignal(str)
+    signal_file_sending_msg = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):    
         super(MyMainWindow, self).__init__(parent)
         self.setupUi(self)
         self.readIniFile()
         self.file_server = None
+        self.file_client = None
+        self.cwd = os.getcwd() # 获取当前程序文件位置
         # 信号连接
         self.frequency_pushButton.clicked.connect(self.sendFrequency)
         self.synchronization_pushButton.clicked.connect(self.sendSynchronization)
@@ -34,7 +39,10 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.textSend_pushButton.clicked.connect(self.sendTextData)
         self.audioSend_start_pushButton.clicked.connect(self.startAudioSending)
         self.audioSend_stop_pushButton.clicked.connect(self.stopAudioSending)
-        self.signal_file_trans_msg.connect(self.handle_signal_file_trans_msg)
+        self.signal_file_receive_msg.connect(self.handle_signal_file_receive_msg)
+        self.signal_file_sending_msg.connect(self.handle_signal_file_sending_msg)
+        self.fileSend_chooseFile_pushButton.clicked.connect(self.slot_btn_chooseFile)
+        self.fileSend_pushButton.clicked.connect(self.sendFile)
 
         # 启动UDP
         self.control_udp_client_start(self.configIP, self.configPort)
@@ -52,8 +60,24 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         except Exception as ret:
             print(ret)
 
-    def emitMySignal(self, msg):
-        self.signal_file_trans_msg.emit(msg)
+    def file_trans_client_concurrency(self):
+        try:
+            filepath = str(self.fileSend_fileName_plainTextEdit.toPlainText())
+            if len(filepath) == 0:
+                return
+            if os.path.isfile(filepath) == False:
+                print("这不是一个文件:", filepath)
+                return
+            self.file_client = LFTPClient(self.getCheckedIP(), 12345, 1024, myMainWindow=self)
+            self.file_client.start("UPLOAD", filepath)
+        except Exception as ret:
+            print(ret)
+
+    def emitReceiveMessage(self, msg):
+        self.signal_file_receive_msg.emit(msg)
+
+    def emitSendingMessage(self, msg):
+        self.signal_file_sending_msg.emit(msg)
 
     def readIniFile(self):
         config = configparser.ConfigParser()    # 注意大小写
@@ -128,8 +152,11 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
     def update_text_receive_sum(self, msg):
         self.textReceive_plainTextEdit.appendPlainText(msg)
 
-    def handle_signal_file_trans_msg(self, msg):
+    def handle_signal_file_receive_msg(self, msg):
         self.fileReceive_plainTextEdit.appendPlainText(msg)
+
+    def handle_signal_file_sending_msg(self, msg):
+        self.fileSend_sending_info_label.setText(msg)
 
     def sendTextData(self):
         self.text_udp_client_send(self.getCheckedIP(), 6002)
@@ -142,6 +169,37 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.audio_udp_client_stop()
         self.audioSend_start_pushButton.setEnabled(True)
 
+    def sendFile(self):
+        self.file_trans_client_th = threading.Thread(target=self.file_trans_client_concurrency)
+        self.file_trans_client_th.start()
+            
+    def slot_btn_chooseFile(self):
+        fileName_choose, filetype = QFileDialog.getOpenFileName(self,  
+                                    "选取文件",  
+                                    self.cwd, # 起始路径 
+                                    "All Files (*);;Text Files (*.txt)")   # 设置文件扩展名过滤,用双分号间隔
+        if fileName_choose == "":
+            print("\n取消选择")
+            return
+        print("\n你选择的文件为:")
+        print(fileName_choose)
+        print("文件筛选器类型: ",filetype)
+        self.fileSend_fileName_plainTextEdit.setPlainText(fileName_choose)
+
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasUrls():
+            e.accept()
+        else:
+            e.ignore()
+
+    def dropEvent(self,event):
+        if event.mimeData().hasUrls():
+            u = event.mimeData().urls()[0]
+            path = u.path()
+            if path[0] == '/':
+                path = path[1:]
+            self.fileSend_fileName_plainTextEdit.setPlainText(path)
+
     def closeEvent(self, event):
         """
         重写closeEvent方法，实现dialog窗体关闭时执行一些代码
@@ -153,8 +211,9 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.testdata_udp_close_all()
         self.text_udp_close_all()
         self.audio_udp_close_all()
+        self.file_server.stop()
         try:
-            stopThreading.stop_thread(self.file_trans_server_th)
+            stopThreading.stop_thread(self.file_trans_client_th)
         except Exception:
             pass
 

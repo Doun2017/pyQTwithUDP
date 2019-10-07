@@ -26,13 +26,15 @@ class State(Enum):
     LAST_ACK = 4 
 
 class LFTPClient:
-    def __init__(self, host, port, bufferSize):
+    def __init__(self, host, port, bufferSize, myMainWindow=None):
         self.host = host
         self.port = port
         self.bufferSize = bufferSize
         self.udpClient = socket(AF_INET,SOCK_DGRAM)
         self.state = State.CLOSED
         self.lock = threading.Lock()
+        self.myMainWindow = myMainWindow
+
         # 用于三次握手
         self.server_isn = -1
         self.client_isn = random.randint(0, 1000)
@@ -135,6 +137,9 @@ class LFTPClient:
         try:
             filename = os.path.basename(filepath)
             filesize = os.path.getsize(filepath)
+            if filesize <= 0:
+                log_error("文件不存在或打开错误:", filepath)
+                return
         except Exception as e:
             log_error("文件不存在或打开错误:", filepath)
             return
@@ -204,7 +209,7 @@ class LFTPClient:
                 message = self.udpClient.recv(2048)
             except Exception as e:
                 if filesize == recvSize:
-                    pbar.finish()
+                    # pbar.finish()
                     log_info("服务端接收完毕")
                     self.timer.cancel()
                 else:
@@ -263,7 +268,7 @@ class LFTPClient:
             # pbar.update(int(recvSize/filesize)*100)
 
             if filesize == recvSize:
-                pbar.finish()
+                # pbar.finish()
                 log_info("服务端接收完毕")
                 self.timer.cancel()
                 break
@@ -372,6 +377,9 @@ class LFTPClient:
             self.total_result = recvSize/(time.time()-self.origin_time)/1024
         print('\r%d/%d  已经上传： %d%%  当前上传速度： %d kb/s  平均上传速度： %d kb/s' % \
             (recvSize, filesize, int(recvSize/filesize*100), self.compute_result, self.total_result), end='')
+        self.myMainWindow.emitSendingMessage('\r%d/%d  已经上传： %d%%  当前上传速度： %d kb/s  平均上传速度： %d kb/s' % \
+            (recvSize, filesize, int(recvSize/filesize*100), self.compute_result, self.total_result))
+
         if recvSize == filesize:
             print("")
 
