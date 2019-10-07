@@ -65,8 +65,9 @@ class LFTPserver():
             time.sleep(0.1)
         except Exception as ret:
             pass
-        for s in serverList:
-            s.stop()
+        for s in self.serverList:
+            if s:
+                s.stop()
 
     def ControlHandShake(self):
         self.serverList = []
