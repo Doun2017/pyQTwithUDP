@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys, os
-sys.path.append("Server")
-sys.path.append("Client")
 import threading
 import configparser
 if hasattr(sys, 'frozen'):
@@ -10,8 +8,8 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 
 import udp_control, udp_test_data, udp_text, udp_audio
-from server import LFTPserver
-from client import LFTPClient
+from Server.server import LFTPserver
+from Client.client import LFTPClient
 import stopThreading
 
 
