@@ -4,14 +4,14 @@ import threading
 import configparser
 if hasattr(sys, 'frozen'):
     os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
+from PyQt5.QtCore import pyqtSignal, QRectF, Qt, QStringListModel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QLabel, QGraphicsScene, QGraphicsRectItem, QGraphicsItem, QGraphicsEllipseItem
 
 import udp_control, udp_test_data, udp_text, udp_audio
 from Server.server import LFTPserver
 from Client.client import LFTPClient
 import stopThreading
-
+from netGraphics import QMyGraphicsview
 
 class MyMainWindow(QMainWindow, udp_control.UdpControLogic, 
         udp_test_data.UdpTestDataLogic, udp_text.UdpTextLogic, udp_audio.UdpAudioLogic):
@@ -50,7 +50,44 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.file_trans_server_th = threading.Thread(target=self.file_trans_server_concurrency)
         self.file_trans_server_th.start()
 
+        # 实例化列表模型，添加数据
+        self.slm = QStringListModel()
+        # 设置模型列表视图，加载数据列表
+        self.slm.setStringList(['Item 1','Item 2','Item 3','Item 4'])
+        # 设置列表视图的模型
+        self.netStatus_clistView.setModel(self.slm)
+
+        # 初始化绘图
+        self.initUI()
+        self.myView.sigMouseMovePoint.connect(self.slotMouseMovePoint)
+        self.myView.sigNetDeviceItemPress.connect(self.slotDeviceItemPress)
+
+    def initUI(self):
+        self.myView = QMyGraphicsview()
+        # self.myView.setCursor(Qt.CrossCursor)
+        self.myView.setMouseTracking(True)
+        self.horizontalLayout_13.addWidget(self.myView, 3)
+
+        self.labViewCorrd = QLabel(u'view坐标')
+        self.labViewCorrd.setMinimumWidth(150)
+        self.statusbar.addWidget(self.labViewCorrd)
+        self.labScenecorrd = QLabel(u'Scene坐标:')
+        self.labScenecorrd.setMinimumWidth(150)
+        self.statusbar.addWidget(self.labScenecorrd)
+        self.labItemCorrd = QLabel(u'Item坐标:')
+        self.labItemCorrd.setMinimumWidth(150)
+        self.statusbar.addWidget(self.labItemCorrd)
+
+    def slotMouseMovePoint(self, pt):
+        self.labViewCorrd.setText('View 坐标：{}， {}'.format(pt.x(), pt.y()))
+        ptScene = self.myView.mapToScene(pt)
+        self.labScenecorrd.setText('Scene 坐标：{:.0f}, {:.0f}'.format(ptScene.x(), ptScene.y()))
         
+    def slotDeviceItemPress(self, infos):
+        self.labItemCorrd.setText(infos[1])
+        self.slm.setStringList(infos)
+
+
     def file_trans_server_concurrency(self):
         try:
             self.file_server = LFTPserver(server_type='control', host='', port=12345, bufferSize=2048, myMainWindow=self)
@@ -94,12 +131,12 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.IP4_radioButton.setText(self.IP4)
         self.IP5_radioButton.setText(self.IP5)
         self.IP6_radioButton.setText(self.IP6)
-        self.sourceIP_comboBox.addItem(self.IP1)
-        self.sourceIP_comboBox.addItem(self.IP2)
-        self.sourceIP_comboBox.addItem(self.IP3)
-        self.sourceIP_comboBox.addItem(self.IP4)
-        self.sourceIP_comboBox.addItem(self.IP5)
-        self.sourceIP_comboBox.addItem(self.IP6)
+        # self.sourceIP_comboBox.addItem(self.IP1)
+        # self.sourceIP_comboBox.addItem(self.IP2)
+        # self.sourceIP_comboBox.addItem(self.IP3)
+        # self.sourceIP_comboBox.addItem(self.IP4)
+        # self.sourceIP_comboBox.addItem(self.IP5)
+        # self.sourceIP_comboBox.addItem(self.IP6)
 
     def getCheckedIP(self):
         if self.IP1_radioButton.isChecked():

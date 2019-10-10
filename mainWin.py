@@ -7,8 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 
-from PyQt5.QtCore import QSize, QMetaObject, QCoreApplication
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_MainWindow(object):
@@ -20,7 +19,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QSize(787, 628))
+        MainWindow.setMinimumSize(QtCore.QSize(787, 628))
         MainWindow.setAcceptDrops(True)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -134,7 +133,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.testDataSend_label.sizePolicy().hasHeightForWidth())
         self.testDataSend_label.setSizePolicy(sizePolicy)
-        # self.testDataSend_label.setAlignment(PyQt5.QtCore.Qt.AlignCenter)
+        self.testDataSend_label.setAlignment(QtCore.Qt.AlignCenter)
         self.testDataSend_label.setObjectName("testDataSend_label")
         self.horizontalLayout_11.addWidget(self.testDataSend_label)
         self.testDataSend_stop_pushButton = QtWidgets.QPushButton(self.groupBox_3)
@@ -211,34 +210,12 @@ class Ui_MainWindow(object):
         self.netStatus_clistView = QtWidgets.QListView(self.groupBox_netStatus)
         self.netStatus_clistView.setObjectName("netStatus_clistView")
         self.horizontalLayout_13.addWidget(self.netStatus_clistView)
-        self.netStatus_graphicsView = QtWidgets.QGraphicsView(self.groupBox_netStatus)
-        self.netStatus_graphicsView.setObjectName("netStatus_graphicsView")
-        self.horizontalLayout_13.addWidget(self.netStatus_graphicsView)
         self.horizontalLayout_13.setStretch(0, 1)
-        self.horizontalLayout_13.setStretch(1, 3)
         self.gridLayout.addWidget(self.groupBox_netStatus, 0, 0, 1, 1)
         self.groupBox_receive = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_receive.setObjectName("groupBox_receive")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.groupBox_receive)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_7.setObjectName("horizontalLayout_7")
-        self.label_10 = QtWidgets.QLabel(self.groupBox_receive)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_10.sizePolicy().hasHeightForWidth())
-        self.label_10.setSizePolicy(sizePolicy)
-        self.label_10.setObjectName("label_10")
-        self.horizontalLayout_7.addWidget(self.label_10, 0)
-        self.sourceIP_comboBox = QtWidgets.QComboBox(self.groupBox_receive)
-        self.sourceIP_comboBox.setMinimumSize(QSize(150, 0))
-        self.sourceIP_comboBox.setEditable(False)
-        self.sourceIP_comboBox.setCurrentText("")
-        self.sourceIP_comboBox.setModelColumn(0)
-        self.sourceIP_comboBox.setObjectName("sourceIP_comboBox")
-        self.horizontalLayout_7.addWidget(self.sourceIP_comboBox)
-        self.verticalLayout_4.addLayout(self.horizontalLayout_7)
         self.horizontalLayout_15 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_15.setObjectName("horizontalLayout_15")
         self.label_11 = QtWidgets.QLabel(self.groupBox_receive)
@@ -304,10 +281,10 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        QMetaObject.connectSlotsByName(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        _translate = QCoreApplication.translate
+        _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "QBL测试程序"))
         self.groupBox_control.setTitle(_translate("MainWindow", "控制"))
         self.label.setText(_translate("MainWindow", "频率:"))
@@ -344,7 +321,6 @@ class Ui_MainWindow(object):
         self.fileSend_pushButton.setText(_translate("MainWindow", "发送"))
         self.groupBox_netStatus.setTitle(_translate("MainWindow", "网络拓扑状态"))
         self.groupBox_receive.setTitle(_translate("MainWindow", "业务数据-收"))
-        self.label_10.setText(_translate("MainWindow", "源地址:"))
         self.label_11.setText(_translate("MainWindow", "接收测试数据:"))
         self.testDataReceive_label.setText(_translate("MainWindow", "0Bytes"))
         self.testDataReceive_clear_pushButton.setText(_translate("MainWindow", "清空"))
