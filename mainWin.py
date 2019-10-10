@@ -7,7 +7,8 @@
 # WARNING! All changes made in this file will be lost!
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QSize, QMetaObject, QCoreApplication
+from PyQt5 import QtWidgets
 
 
 class Ui_MainWindow(object):
@@ -19,7 +20,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QtCore.QSize(787, 628))
+        MainWindow.setMinimumSize(QSize(787, 628))
         MainWindow.setAcceptDrops(True)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -133,7 +134,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.testDataSend_label.sizePolicy().hasHeightForWidth())
         self.testDataSend_label.setSizePolicy(sizePolicy)
-        self.testDataSend_label.setAlignment(QtCore.Qt.AlignCenter)
+        # self.testDataSend_label.setAlignment(PyQt5.QtCore.Qt.AlignCenter)
         self.testDataSend_label.setObjectName("testDataSend_label")
         self.horizontalLayout_11.addWidget(self.testDataSend_label)
         self.testDataSend_stop_pushButton = QtWidgets.QPushButton(self.groupBox_3)
@@ -229,9 +230,9 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.label_10.sizePolicy().hasHeightForWidth())
         self.label_10.setSizePolicy(sizePolicy)
         self.label_10.setObjectName("label_10")
-        self.horizontalLayout_7.addWidget(self.label_10, 0, QtCore.Qt.AlignLeft)
+        self.horizontalLayout_7.addWidget(self.label_10, 0)
         self.sourceIP_comboBox = QtWidgets.QComboBox(self.groupBox_receive)
-        self.sourceIP_comboBox.setMinimumSize(QtCore.QSize(150, 0))
+        self.sourceIP_comboBox.setMinimumSize(QSize(150, 0))
         self.sourceIP_comboBox.setEditable(False)
         self.sourceIP_comboBox.setCurrentText("")
         self.sourceIP_comboBox.setModelColumn(0)
@@ -303,10 +304,10 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
+        _translate = QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "QBL测试程序"))
         self.groupBox_control.setTitle(_translate("MainWindow", "控制"))
         self.label.setText(_translate("MainWindow", "频率:"))

@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import pyqtSignal
 import socket
 import threading
 import time
@@ -10,7 +10,7 @@ import stopThreading
 
 class UdpTestDataLogic(mainWin.Ui_MainWindow):
     # 信号槽机制：设置一个信号，用于触发接收区写入动作
-    signal_receive_test_data_msg = QtCore.pyqtSignal(str)
+    signal_receive_test_data_msg = pyqtSignal(str)
 
     def __init__(self):
         super(UdpTestDataLogic, self).__init__()

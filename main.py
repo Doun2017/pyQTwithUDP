@@ -4,7 +4,7 @@ import threading
 import configparser
 if hasattr(sys, 'frozen'):
     os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 
 import udp_control, udp_test_data, udp_text, udp_audio
@@ -15,8 +15,8 @@ import stopThreading
 
 class MyMainWindow(QMainWindow, udp_control.UdpControLogic, 
         udp_test_data.UdpTestDataLogic, udp_text.UdpTextLogic, udp_audio.UdpAudioLogic):
-    signal_file_receive_msg = QtCore.pyqtSignal(str)
-    signal_file_sending_msg = QtCore.pyqtSignal(str)
+    signal_file_receive_msg = pyqtSignal(str)
+    signal_file_sending_msg = pyqtSignal(str)
 
     def __init__(self, parent=None):    
         super(MyMainWindow, self).__init__(parent)
