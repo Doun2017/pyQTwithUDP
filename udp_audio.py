@@ -37,6 +37,7 @@ class UdpAudioLogic(mainWin.Ui_MainWindow):
         """
         if self.udp_receive_socket_audio == None:
             self.udp_receive_socket_audio = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        #开始接收语音并播放
         try:
             address = ('', port)
             self.run_receiveing = True
@@ -97,7 +98,11 @@ class UdpAudioLogic(mainWin.Ui_MainWindow):
                 raise sd.CallbackStop
             # print(len(indata))
             try:
-                udp_socket.sendto(indata.tobytes(), self.audio_dest_address)
+                curtime = time.time()
+                t = int(curtime*1000)
+                print(t)
+                bt = t.to_bytes(10, 'big')
+                udp_socket.sendto(bt+indata.tobytes(), self.audio_dest_address)
                 # print(self.audio_dest_address)
             except Exception as ret:
                 print(ret)
@@ -147,7 +152,13 @@ class UdpAudioLogic(mainWin.Ui_MainWindow):
             try:
                 recv_msg, recv_addr = self.udp_receive_socket_audio.recvfrom(10240)
                 self.lock_new_receive_num.acquire()
-                self.new_receive_buffer += recv_msg
+                bt = recv_msg[:10]
+                #将前10个字节的时间信息解出
+                send_time = int.from_bytes(bt, byteorder='big')
+                ct = int(time.time()*1000)
+                delay_time = ct - send_time
+                print(delay_time)
+                self.new_receive_buffer += recv_msg[10:]
                 self.lock_new_receive_num.release()
             except Exception as ret:
                 msg = 'udp_receive_socket_audio 接收失败\n'

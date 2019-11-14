@@ -28,9 +28,21 @@ class UdpControLogic(mainWin.Ui_MainWindow):
 
 #            self.signal_write_msg.emit(msg)
 
+    def control_udp_send_ID(self):
+        value = self.id_settint_comboBox.currentIndex() + 1
+        if self.id_settint_checkBox.isChecked():
+            value += 1000
+        send_msg = ("id=" + str(value)).encode('utf-8')
+        print(send_msg)
+        self.control_udp_send(send_msg)
+
     def control_udp_send_frequency(self):
-        value = self.frequency_spinBox.value()
-        send_msg = ("frequency=" + str(value)).encode('utf-8')
+        if self.fixed_frequency_radioButton.isChecked():
+            value = self.frequency_comboBox.currentText()
+            send_msg = ("frequency=" + value).encode('utf-8')
+        else:
+            send_msg = "unfixed_frequency".encode('utf-8')
+        print(send_msg)
         self.control_udp_send(send_msg)
 
     def control_udp_send_synchronization(self):

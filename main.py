@@ -12,6 +12,7 @@ from Server.server import LFTPserver
 from Client.client import LFTPClient
 import stopThreading
 from netGraphics import QMyGraphicsview
+from configparser import NoOptionError
 
 class MyMainWindow(QMainWindow, udp_control.UdpControLogic, 
         udp_test_data.UdpTestDataLogic, udp_text.UdpTextLogic, udp_audio.UdpAudioLogic):
@@ -27,6 +28,7 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.cwd = os.getcwd() # 获取当前程序文件位置
         # 信号连接
         self.frequency_pushButton.clicked.connect(self.sendFrequency)
+        self.id_settint_pushButton.clicked.connect(self.sendID)
         self.synchronization_pushButton.clicked.connect(self.sendSynchronization)
         self.testDataSend_start_pushButton.clicked.connect(self.startSendTestData)
         self.testDataSend_stop_pushButton.clicked.connect(self.stopSendTestData)
@@ -41,6 +43,8 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.signal_file_sending_msg.connect(self.handle_signal_file_sending_msg)
         self.fileSend_chooseFile_pushButton.clicked.connect(self.slot_btn_chooseFile)
         self.fileSend_pushButton.clicked.connect(self.sendFile)
+        self.unfixed_frequency_radioButton.clicked.connect(self.slot_btn_unfix_frequency)
+        self.fixed_frequency_radioButton.clicked.connect(self.slot_btn_fix_frequency)
 
         # 启动UDP
         self.control_udp_client_start(self.configIP, self.configPort)
@@ -58,16 +62,14 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.netStatus_clistView.setModel(self.slm)
 
         # 初始化绘图
-        self.initUI()
-        self.myView.sigMouseMovePoint.connect(self.slotMouseMovePoint)
-        self.myView.sigNetDeviceItemPress.connect(self.slotDeviceItemPress)
+        self.initGraphicsUI()
 
-    def initUI(self):
+    def initGraphicsUI(self):
         self.myView = QMyGraphicsview()
         # self.myView.setCursor(Qt.CrossCursor)
         self.myView.setMouseTracking(True)
         self.horizontalLayout_13.addWidget(self.myView, 3)
-
+        # 在状态栏添加数据展示
         self.labViewCorrd = QLabel(u'view坐标')
         self.labViewCorrd.setMinimumWidth(150)
         self.statusbar.addWidget(self.labViewCorrd)
@@ -77,6 +79,10 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.labItemCorrd = QLabel(u'Item坐标:')
         self.labItemCorrd.setMinimumWidth(150)
         self.statusbar.addWidget(self.labItemCorrd)
+        # 绘图信号链接
+        self.myView.sigMouseMovePoint.connect(self.slotMouseMovePoint)
+        self.myView.sigNetDeviceItemPress.connect(self.slotDeviceItemPress)
+
 
     def slotMouseMovePoint(self, pt):
         self.labViewCorrd.setText('View 坐标：{}， {}'.format(pt.x(), pt.y()))
@@ -131,12 +137,24 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.IP4_radioButton.setText(self.IP4)
         self.IP5_radioButton.setText(self.IP5)
         self.IP6_radioButton.setText(self.IP6)
-        # self.sourceIP_comboBox.addItem(self.IP1)
-        # self.sourceIP_comboBox.addItem(self.IP2)
-        # self.sourceIP_comboBox.addItem(self.IP3)
-        # self.sourceIP_comboBox.addItem(self.IP4)
-        # self.sourceIP_comboBox.addItem(self.IP5)
-        # self.sourceIP_comboBox.addItem(self.IP6)
+        # 添加速率等级选项
+        ilevel=0
+        strlevel = config.get('level', 'level' + str(ilevel))
+        while strlevel:
+            self.frequency_comboBox.addItem(strlevel)
+            ilevel += 1
+            try:
+                strlevel = config.get('level', 'level' + str(ilevel))
+            except NoOptionError as ret:
+                print(ret)
+                break
+        # 添加ID选项
+        self.id_settint_comboBox.addItem(str(1))
+        self.id_settint_comboBox.addItem(str(2))
+        self.id_settint_comboBox.addItem(str(3))
+        self.id_settint_comboBox.addItem(str(4))
+        self.id_settint_comboBox.addItem(str(5))
+        self.id_settint_comboBox.addItem(str(6))
 
     def getCheckedIP(self):
         if self.IP1_radioButton.isChecked():
@@ -158,6 +176,10 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
     def sendFrequency(self):
         print("sendFrequency")
         self.control_udp_send_frequency()
+
+    def sendID(self):
+        print("sendID")
+        self.control_udp_send_ID()
 
     def sendSynchronization(self):
         print("synchronization")
@@ -207,7 +229,12 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
     def sendFile(self):
         self.file_trans_client_th = threading.Thread(target=self.file_trans_client_concurrency)
         self.file_trans_client_th.start()
-            
+
+    def slot_btn_fix_frequency(self):
+        self.frequency_comboBox.setDisabled(False)
+    def slot_btn_unfix_frequency(self):
+        self.frequency_comboBox.setDisabled(True)
+
     def slot_btn_chooseFile(self):
         fileName_choose, filetype = QFileDialog.getOpenFileName(self,  
                                     "选取文件",  
