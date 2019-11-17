@@ -4,6 +4,7 @@ import threading
 import configparser
 if hasattr(sys, 'frozen'):
     os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
+from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal, QRectF, Qt, QStringListModel
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QLabel, QGraphicsScene, QGraphicsRectItem, QGraphicsItem, QGraphicsEllipseItem
 
@@ -68,6 +69,7 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic,
         self.myView = QMyGraphicsview()
         # self.myView.setCursor(Qt.CrossCursor)
         self.myView.setMouseTracking(True)
+        self.myView.setMinimumSize(QtCore.QSize(410, 410))
         self.horizontalLayout_13.addWidget(self.myView, 3)
         # 在状态栏添加数据展示
         self.labViewCorrd = QLabel(u'view坐标')

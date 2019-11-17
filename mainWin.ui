@@ -6,15 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>868</width>
-    <height>651</height>
+    <width>787</width>
+    <height>628</height>
    </rect>
-  </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
@@ -29,7 +23,7 @@
    <string>QBL测试程序</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout" rowstretch="1,1" columnstretch="3,1">
+   <layout class="QGridLayout" name="gridLayout" rowstretch="3,1" columnstretch="3,1">
     <item row="1" column="0">
      <widget class="QGroupBox" name="groupBox_send">
       <property name="title">
@@ -187,12 +181,6 @@
               </item>
               <item>
                <widget class="QLabel" name="testDataSend_label">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
                 <property name="text">
                  <string>0Bytes</string>
                 </property>
@@ -235,12 +223,6 @@
             </item>
             <item>
              <widget class="QPushButton" name="textSend_pushButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
               <property name="text">
                <string>发送</string>
               </property>
@@ -322,12 +304,6 @@
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QLabel" name="label_14">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
          <property name="text">
           <string>接收语音:   ...</string>
          </property>
@@ -337,12 +313,6 @@
         <layout class="QHBoxLayout" name="horizontalLayout_15">
          <item>
           <widget class="QLabel" name="label_11">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="text">
             <string>接收测试数据:</string>
            </property>
@@ -350,12 +320,6 @@
          </item>
          <item>
           <widget class="QLabel" name="testDataReceive_label">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="text">
             <string>0Bytes</string>
            </property>
@@ -363,12 +327,6 @@
          </item>
          <item>
           <widget class="QPushButton" name="testDataReceive_clear_pushButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
            <property name="text">
             <string>清空</string>
            </property>
@@ -392,12 +350,6 @@
        </item>
        <item>
         <widget class="QLabel" name="label_15">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
          <property name="text">
           <string>接收文件:</string>
          </property>
@@ -499,14 +451,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="frequency_comboBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-          </widget>
+          <widget class="QComboBox" name="frequency_comboBox"/>
          </item>
          <item>
           <widget class="QPushButton" name="frequency_pushButton">
