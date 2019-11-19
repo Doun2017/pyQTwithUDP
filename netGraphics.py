@@ -8,24 +8,43 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QLabel, \
 	QGraphicsScene, QGraphicsRectItem, QGraphicsItem, QGraphicsEllipseItem, \
 		QGraphicsLineItem
 
-class NetNodeInfo:
-	def __init__(self, id, strinfo):
-		self.id = id
-		self.info = strinfo
 		
 
 # 网络节点图形
 class NetDeviceItem(QGraphicsEllipseItem):
-	def __init__(self, parentView, infos):
+	route_info = None
+	def __init__(self, parentView, id, route_info=None):
 		super(NetDeviceItem, self).__init__()
 		self.pa = parentView
-		self.infos = infos
+		self.id = id
+		self.setBrush(Qt.gray)
+
+		self.setRouteInfo(route_info)
+		self.setRect(-15, -15, 30, 30)
+		self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable
+				| QGraphicsItem.ItemIsFocusable)
+
+	def setRouteInfo(self, route_info):
+		"""
+		设置网络路由信息
+		return 信息确实更新了返回True，没有更新返回False
+		"""
+		if self.route_info == route_info:
+			return False
+		else:
+			self.route_info = route_info
+			if self.route_info:
+				self.setBrush(Qt.green)
+			else:
+				self.setBrush(Qt.gray)
+			return True
 
 	def mousePressEvent(self, event):
-		self.pa.emitItemPressEvent([str(self.infos.id), self.infos.info])
-		# item = QGraphicsLineItem(0,0, self.pos().x(), self.pos().y())
-		# self.pa.myScene.addItem(item)
-		self.pa.drawLines(self.infos.id)
+		infos = ['id='+str(self.id)]
+		if self.route_info:
+			for item in self.route_info:
+				infos.append(str(self.id)+' to '+str(1+self.route_info.index(item)) + ' : ' +str(item))
+		self.pa.onItemPressed(infos, self.id)
 
 # 整体图形
 class WholeDeviceItem(QGraphicsRectItem):
@@ -35,20 +54,20 @@ class WholeDeviceItem(QGraphicsRectItem):
 		self.infos = infos
 
 	def mousePressEvent(self, event):
-		self.pa.emitItemPressEvent(self.infos)
-		self.pa.drawAllLines()
+		self.pa.onWholePressed(self.infos)
+		self.hasFocus()
 
 # 整体网络状态示意图
 class QMyGraphicsview(QGraphicsView):
+	wholeDeviceItem = None
+	# 信号量
 	sigMouseMovePoint = pyqtSignal(QPoint)
 	sigNetDeviceItemPress = pyqtSignal(list)
-	paths = [[[0],[1,4,3,2],[1,4,3],[1,4],[0],[1,6]],
-		[[2,1],[0],[2,4,3],[2,4],[0],[2,6]],
-		[],
-		[],
-		[],
-		[]]
-	devices = []
+	# 设备信息数据，key为设备id
+	devices = {}
+	# 当前选中状态：-1：无选中；0：整体选中：>1:选中节点的ID
+	pressedID = -1
+	# 信号线
 	line_items = []
 
 	def __init__(self, parent=None):
@@ -56,41 +75,70 @@ class QMyGraphicsview(QGraphicsView):
 		self.rect = QRectF(-200,-200,400,400)
 		self.myScene = QGraphicsScene(self.rect)
 		self.setScene(self.myScene)
-		self.initPoints()
-		self.initGraphicSystem()
+		self.initData()
+		self.refrashGraphicSystem()
 
-	def initPoints(self):
-		# 准备6个节点圆形
-		for i in range(1, 7):
-			item = NetDeviceItem(self, NetNodeInfo(i, "green"))
-			x = 150*math.sin(math.radians(60*i))
-			y = 150*math.cos(math.radians(60*i))
-			item.setPos(x, y)
-			item.setBrush(Qt.green)
-			item.setRect(-15, -15, 30, 30)
-			item.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable
-					| QGraphicsItem.ItemIsFocusable)
-			self.devices.append(item)
+	def initData(self):
+		self.devices[1] = NetDeviceItem(self, 1)
+		self.devices[2] = NetDeviceItem(self, 2)
+		self.devices[3] = NetDeviceItem(self, 3)
+		self.devices[4] = NetDeviceItem(self, 4)
+		self.devices[5] = NetDeviceItem(self, 5)
+		self.devices[6] = NetDeviceItem(self, 6)
+		# test data
+		# self.devices[1].setRouteInfo([[0],[1,4,3,2],[1,4,3],[1,4],[0],[1,6]])
+		# self.devices[2].setRouteInfo([[2,1],[0],[2,4,3],[2,4],[0],[2,6]])
+		
+	def updateDevice(self, id, route_info):
+		"""
+		更新某节点的信息，信息确实改变了的话，更新Graphicsview显示
+		"""
+		if self.devices.__contains__(id):
+			if self.devices[id].setRouteInfo(route_info):
+				# self.refrashGraphicSystem()
+				if self.pressedID == 0:
+					self.drawAllLines()
+				elif self.pressedID > 0:
+					self.removeAllLines()
+					self.drawLines(self.pressedID)
 
-	def initGraphicSystem(self):
+
+	def refrashGraphicSystem(self):
+		"""
+		重新画整个拓扑图
+		"""
 		# 清除所有item
-		self.myScene.clear()
+		# self.myScene.clear()
 		# 显示scene边框
-		item1 = WholeDeviceItem(self.rect, self, ["whole", "white"])
-		item1.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable)
-		self.myScene.addItem(item1)
+		if self.wholeDeviceItem == None:
+			self.wholeDeviceItem = WholeDeviceItem(self.rect, self, ["   ",])
+			self.wholeDeviceItem.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable)
+			self.myScene.addItem(self.wholeDeviceItem)
 		# 显示节点
-		for item in self.devices:
-			self.myScene.addItem(item)
-			text_item = self.myScene.addSimpleText(str(item.infos.id))
-			text_item.setPos(item.pos().x()+20, item.pos().y())
+		for key, value in self.devices.items():
+			x = 150*math.sin(math.radians(60*key))
+			y = 150*math.cos(math.radians(60*key))
+			value.setPos(x, y)
+			self.myScene.addItem(value)
+			text_item = self.myScene.addSimpleText(str(value.id))
+			text_item.setPos(value.pos().x()+20, value.pos().y())
 		self.myScene.clearSelection()
+		self.pressedID = -1
+
 
 	def mouseMoveEvent(self, evt):
 		self.sigMouseMovePoint.emit(evt.pos())
 
-	def emitItemPressEvent(self, infos):
+	def onItemPressed(self, infos, id):
 		self.sigNetDeviceItemPress.emit(infos)
+		self.removeAllLines()
+		self.drawLines(id)
+		self.pressedID = id
+
+	def onWholePressed(self, infos):
+		self.sigNetDeviceItemPress.emit(infos)
+		self.drawAllLines()
+		self.pressedID = 0
 
 	def removeAllLines(self):
 		for item in self.line_items:
@@ -98,24 +146,23 @@ class QMyGraphicsview(QGraphicsView):
 		self.line_items.clear()
 
 	def drawAllLines(self):
+		"""
+		画出所有节点的路由信号线
+		"""
 		self.removeAllLines()
-		for path in self.paths:
-			if len(path) == 6:
-				for line in path:
-					if len(line)>1:
-						for i in range(len(line)-1):
-							p1 = self.devices[line[i]-1]
-							p2 = self.devices[line[i+1]-1]
-							line_item = self.myScene.addLine(p1.pos().x(), p1.pos().y(), p2.pos().x(), p2.pos().y())
-							self.line_items.append(line_item)
+		for k in self.devices.keys():
+			self.drawLines(k)
 
 	def drawLines(self, id):
-		self.removeAllLines()
-		"""画出id节点的连接线"""
-		for line in self.paths[id-1]:
-			if len(line)>1:
-				for i in range(len(line)-1):
-					p1 = self.devices[line[i]-1]
-					p2 = self.devices[line[i+1]-1]
-					line_item = self.myScene.addLine(p1.pos().x(), p1.pos().y(), p2.pos().x(), p2.pos().y())
-					self.line_items.append(line_item)
+		"""
+		画出id节点的路由信号线
+		"""
+		lines = self.devices[id].route_info
+		if lines:
+			for line in lines:
+				if line and len(line)>1:
+					for i in range(len(line)-1):
+						p1 = self.devices[line[i]]
+						p2 = self.devices[line[i+1]]
+						line_item = self.myScene.addLine(p1.pos().x(), p1.pos().y(), p2.pos().x(), p2.pos().y())
+						self.line_items.append(line_item)
