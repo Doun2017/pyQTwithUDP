@@ -31,6 +31,9 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.audio_pushButton.clicked.connect(self.sendAudioDestID)
         self.unfixed_frequency_radioButton.clicked.connect(self.slot_btn_unfix_frequency)
         self.fixed_frequency_radioButton.clicked.connect(self.slot_btn_fix_frequency)
+        self.pushButton_open.clicked.connect(self.slot_btn_open)
+        self.pushButton_close.clicked.connect(self.slot_btn_close)
+        self.auto_start_pushButton.clicked.connect(self.slot_btn_auto)
 
         self.signal_conecting_point_status_msg.connect(self.slot_receive_connecting_point_status)
         self.signal_net_point_status_msg.connect(self.slot_receive_net_point_status)
@@ -49,35 +52,13 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.point_status_slm = QStringListModel()
         # 设置列表视图的模型
         self.point_status_listView.setModel(self.point_status_slm)
-
         # 初始化入网节点列表
         self.device_list_slm = QStringListModel()
         self.device_list_listView.setModel(self.device_list_slm)
         self.refreshPointsInNet()
-
-        # 初始化语音目的列表
-        self.refreshAudioDestIDList()
-
         # 初始化直连节点状态列表
         self.connecting_point_status_slm = QStringListModel()
-        self.connecting_point_status_slm.setStringList([
-            'ID：1',
-            '速率等级：2Mbps',
-            '同步方式：外同步',
-            '中心频点：1588MHz',
-            '使用带宽：0.5Mbps',
-            '音频目的节点：广播',
-            '可用带宽：',
-            '传输时延：',
-            '时延抖动：'])
         self.connecting_point_status_listView.setModel(self.connecting_point_status_slm)
-
-    def refreshAudioDestIDList(self):
-        self.audio_comboBox.clear()
-        self.audio_comboBox.addItem('广播')
-        for v in self.myView.devices.values():
-            if v.route_info:
-                self.audio_comboBox.addItem(str(v.id))
 
     def refreshPointsInNet(self):
         """
@@ -143,12 +124,16 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
                 print(ret)
                 break
         # 添加ID选项
-        self.id_settint_comboBox.addItem(str(1))
-        self.id_settint_comboBox.addItem(str(2))
-        self.id_settint_comboBox.addItem(str(3))
-        self.id_settint_comboBox.addItem(str(4))
-        self.id_settint_comboBox.addItem(str(5))
-        self.id_settint_comboBox.addItem(str(6))
+        ilevel=0
+        strid = config.get('id', 'id' + str(ilevel))
+        while strid:
+            self.id_settint_comboBox.addItem(strid)
+            ilevel += 1
+            try:
+                strid = config.get('id', 'id' + str(ilevel))
+            except NoOptionError as ret:
+                print(ret)
+                break
 
     def sendFrequency(self):
         msg = self.control_udp_send_frequency()
@@ -180,6 +165,19 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         print(msg)
         self.labItemMsg.setText('控制命令已发送：' + msg)
 
+    def slot_btn_open(self):
+        msg = self.control_udp_send_open(True)
+        print(msg)
+        self.labItemMsg.setText('控制命令已发送：' + msg)
+    def slot_btn_close(self):
+        msg = self.control_udp_send_open(False)
+        print(msg)
+        self.labItemMsg.setText('控制命令已发送：' + msg)
+    def slot_btn_auto(self):
+        msg = self.control_udp_send_auto()
+        print(msg)
+        self.labItemMsg.setText('控制命令已发送：' + msg)
+
     def slot_btn_fix_frequency(self):
         self.frequency_comboBox.setDisabled(False)
     def slot_btn_unfix_frequency(self):
@@ -189,6 +187,7 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         """
         收到直连的网络节点状态信息
         """
+        self.connecting_point_status_slm.setStringList(status)
         pass
 
     def slot_receive_net_point_status(self, id, status):
@@ -196,7 +195,7 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         收到网络节点信息
         """
         self.myView.updateDevice(id, status)
-        self.refreshAudioDestIDList()
+        # self.refreshAudioDestIDList()
         self.refreshPointsInNet()
         
     def closeEvent(self, event):

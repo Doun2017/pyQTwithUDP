@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>516</width>
-    <height>602</height>
+    <width>535</width>
+    <height>532</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -41,13 +41,13 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>300</height>
+          <height>330</height>
          </size>
         </property>
         <property name="title">
          <string>控制</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,2,0,1,0,1,0,1">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="1,1,1,1">
            <item>
@@ -61,24 +61,22 @@
             <widget class="QComboBox" name="id_settint_comboBox"/>
            </item>
            <item>
-            <widget class="QCheckBox" name="id_settint_checkBox">
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-               <underline>false</underline>
-               <kerning>true</kerning>
-              </font>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
-             <property name="text">
-              <string>是否主节点</string>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
              </property>
-            </widget>
+            </spacer>
            </item>
            <item>
             <widget class="QPushButton" name="id_settint_pushButton">
              <property name="text">
-              <string>下发</string>
+              <string>设置</string>
              </property>
             </widget>
            </item>
@@ -92,9 +90,22 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_6">
-           <item>
+          <layout class="QGridLayout" name="gridLayout" columnstretch="1,1,1,1,0,0">
+           <item row="1" column="3" colspan="2">
+            <widget class="QPushButton" name="frequency_pushButton">
+             <property name="text">
+              <string>设置</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
             <widget class="QRadioButton" name="fixed_frequency_radioButton">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>18</height>
+              </size>
+             </property>
              <property name="text">
               <string>固定速率</string>
              </property>
@@ -106,8 +117,14 @@
              </attribute>
             </widget>
            </item>
-           <item>
+           <item row="1" column="0">
             <widget class="QRadioButton" name="unfixed_frequency_radioButton">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>18</height>
+              </size>
+             </property>
              <property name="text">
               <string>自适应速率</string>
              </property>
@@ -116,24 +133,20 @@
              </attribute>
             </widget>
            </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2,1">
-           <item>
+           <item row="0" column="1">
             <widget class="QLabel" name="label">
              <property name="text">
               <string>速率等级:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="0" column="2">
             <widget class="QComboBox" name="frequency_comboBox"/>
            </item>
-           <item>
-            <widget class="QPushButton" name="frequency_pushButton">
+           <item row="0" column="3" colspan="2">
+            <widget class="QLabel" name="label_9">
              <property name="text">
-              <string>下发</string>
+              <string>Mbps</string>
              </property>
             </widget>
            </item>
@@ -175,7 +188,7 @@
            <item>
             <widget class="QPushButton" name="synchronization_pushButton">
              <property name="text">
-              <string>下发</string>
+              <string>设置</string>
              </property>
             </widget>
            </item>
@@ -217,7 +230,7 @@
            <item>
             <widget class="QPushButton" name="center_frequency_pushButton">
              <property name="text">
-              <string>下发</string>
+              <string>设置</string>
              </property>
             </widget>
            </item>
@@ -252,7 +265,7 @@
            <item>
             <widget class="QPushButton" name="use_bandwidth_pushButton">
              <property name="text">
-              <string>下发</string>
+              <string>设置</string>
              </property>
             </widget>
            </item>
@@ -268,21 +281,40 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,2,1">
+          <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,0,1">
            <item>
             <widget class="QLabel" name="label_8">
              <property name="text">
-              <string>目的节点:</string>
+              <string>目的地址:</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="audio_comboBox"/>
+            <widget class="QTextEdit" name="dst_ip_textEdit">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>15</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>25</height>
+              </size>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="audio_pushButton">
              <property name="text">
-              <string>下发</string>
+              <string>设置</string>
              </property>
             </widget>
            </item>
@@ -320,6 +352,38 @@
          <widget class="QListView" name="point_status_listView">
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QPushButton" name="pushButton_open">
+          <property name="text">
+           <string>开始</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_close">
+          <property name="text">
+           <string>停止</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="auto_start_checkBox">
+          <property name="text">
+           <string>波形自启动</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="auto_start_pushButton">
+          <property name="text">
+           <string>设置</string>
           </property>
          </widget>
         </item>
