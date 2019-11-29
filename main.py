@@ -27,7 +27,7 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.id_settint_pushButton.clicked.connect(self.sendID)
         self.synchronization_pushButton.clicked.connect(self.sendSynchronization)
         self.center_frequency_pushButton.clicked.connect(self.sendCenterFrequency)
-        self.use_bandwidth_pushButton.clicked.connect(self.sendUseBandwidth)
+        self.priority_pushButton.clicked.connect(self.sendPrioritywidth)
         self.audio_pushButton.clicked.connect(self.sendAudioDestID)
         self.unfixed_frequency_radioButton.clicked.connect(self.slot_btn_unfix_frequency)
         self.fixed_frequency_radioButton.clicked.connect(self.slot_btn_fix_frequency)
@@ -155,7 +155,7 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         print(msg)
         self.labItemMsg.setText('控制命令已发送：' + msg)
         
-    def sendUseBandwidth(self):
+    def sendPrioritywidth(self):
         msg = self.control_udp_send_use_bandwidth()
         print(msg)
         self.labItemMsg.setText('控制命令已发送：' + msg)

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>535</width>
-    <height>532</height>
+    <width>514</width>
+    <height>568</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -90,7 +90,7 @@
           </widget>
          </item>
          <item>
-          <layout class="QGridLayout" name="gridLayout" columnstretch="1,1,1,1,0,0">
+          <layout class="QGridLayout" name="gridLayout" columnstretch="1,1,1,1,0">
            <item row="1" column="3" colspan="2">
             <widget class="QPushButton" name="frequency_pushButton">
              <property name="text">
@@ -244,26 +244,46 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1,1,1">
+          <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,0,1,0,1">
            <item>
             <widget class="QLabel" name="label_6">
              <property name="text">
-              <string>使用带宽:</string>
+              <string>优先级端口 高:</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="use_bandwidth_doubleSpinBox"/>
+            <widget class="QSpinBox" name="high_priority_spinBox">
+             <property name="minimum">
+              <number>5000</number>
+             </property>
+             <property name="maximum">
+              <number>65535</number>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_7">
              <property name="text">
-              <string>Mbps</string>
+              <string>中：</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="use_bandwidth_pushButton">
+            <widget class="QSpinBox" name="middle_priority_spinBox">
+             <property name="minimum">
+              <number>5000</number>
+             </property>
+             <property name="maximum">
+              <number>65535</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="priority_pushButton">
              <property name="text">
               <string>设置</string>
              </property>
@@ -281,7 +301,7 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,0,1">
+          <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,2,1">
            <item>
             <widget class="QLabel" name="label_8">
              <property name="text">

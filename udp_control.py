@@ -24,6 +24,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         self.__FRAME_STYPE_CTRL_RATEL       =0x12
         self.__FRAME_STYPE_CTRL_FERQ        =0x13
         self.__FRAME_STYPE_CTRL_DST_IP      =0x14
+        self.__FRAME_STYPE_CTRL_PRI_PORT    =0x15
         self.__FRAME_STYPE_CTRL_AUTOSTART   =0x21
         self.__FRAME_STYPE_CTRL_START       =0xE1
         self.__FRAME_STYPE_CTRL_SAVE_PARAM  =0xF1
@@ -56,7 +57,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
 
     def control_udp_sendontime_concurrency(self):
         while True:
-            self.control_udp_send(self.control_frame0(0))
+            self.control_udp_send(self.control_frame_empty(0))
             try:
                 time.sleep(5)
             except Exception as ret:
@@ -73,23 +74,26 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                 recv_msg, recv_addr = self.udp_socket.recvfrom(10240)
                 if recv_msg:
                     print('control_udp_server receive:' + recv_msg.hex())
-                    if recv_msg[4] == 1 and recv_msg.__len__() == 8+4*7:
-                        # FRAME_TYPE_STATUS
-                        self.parse_status_frame(recv_msg)
-
-                    # 发布状态信息 test
-                    if recv_msg.__len__()%2 == 0:
-                        if self.choose == 0:
-                            self.signal_net_point_status_msg.emit(1, [[0],[1,4,3,2],[1,4,3],[1,4],[0],[1,6]])
-                            self.choose = 1
+                    # FRAME_TYPE_STATUS状态帧
+                    if recv_msg[4] == 1:
+                        # FRAME_STYPE_STATUS_DEV直连节点状态
+                        if recv_msg[5] == 1 and recv_msg.__len__() == 8+4*10:
+                            self.parse_status_frame(recv_msg)
                         else:
-                            self.signal_net_point_status_msg.emit(1, [[0],[1,4,3,2],[1,4,3],[1,4],[0],[0]])
-                            self.choose = 0
-                    else:
-                        self.signal_net_point_status_msg.emit(2, [[2,1],[0],[2,4,3],[2,4],[0],[2,6]])
+                            # FRAME_STYPE_STATUS_MESH节点组网表
+                            self.parse_net_status_frame(recv_msg)
 
-                        #self.signal_conecting_point_status_msg.emit(recv_msg)
-                    # self.signal_net_point_status_msg.emit(recv_msg)
+                    # test发布状态信息
+                    # if recv_msg.__len__()%2 == 0:
+                    #     if self.choose == 0:
+                    #         self.signal_net_point_status_msg.emit(1, [[0],[1,4,3,2],[1,4,3],[1,4],[0],[1,6]])
+                    #         self.choose = 1
+                    #     else:
+                    #         self.signal_net_point_status_msg.emit(1, [[0],[1,4,3,2],[1,4,3],[1,4],[0],[0]])
+                    #         self.choose = 0
+                    # else:
+                    #     self.signal_net_point_status_msg.emit(2, [[2,1],[0],[2,4,3],[2,4],[0],[2,6]])
+
             except Exception as ret:
                 msg = 'udp_socket 接收失败\n'
                 time.sleep(0.1)
@@ -97,39 +101,93 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                 print(ret)
                 break
 
+    def parse_net_status_frame(self, datas):
+        '''
+        FRAME_STYPE_STATUS_MESH节点组网表
+        '''
+        # 组网表分组
+        head_len=8
+        group_list = []
+        datalen = int.from_bytes(datas[2:4])
+        grouplen = datalen%3
+        for gindex in range(grouplen):
+            beg = head_len+3*gindex
+            group_list.append(datas[beg:beg+3])
+
+        # 分析此帧组网表的源id
+        device_id=0
+        for g in group_list:
+            if g[0]==g[1] and g[2]==0:
+                device_id = g[0]
+        if device_id==0:
+            return
+            
+        # 分析路由
+        new_group_list = []
+        for g in group_list:
+            if g[2]>0 and g[2]<6:
+                new_group_list.append([device_id, g[1]])
+                
+        self.signal_net_point_status_msg.emit(device_id, new_group_list)
+
     def parse_status_frame(self, datas):
+        '''
+        FRAME_STYPE_STATUS_DEV直连节点状态
+        '''
         int_values = []
         show_values = []
         head_len=8
-        for i in range(7):
+        for i in range(10):
             b = datas[head_len+4*i:head_len+4*(i+1)]
             int_values.append(int.from_bytes(b,byteorder='little',signed=True))
-        # 组网模式：
-        # if int_values[0] == 0:
-        #     show_values.append('组网模式：'+'两台设备的1跳网络')
-        # elif int_values[0] == 1:
-        #     show_values.append('组网模式：'+'多台设备的1跳网络')
-        # else:
-        #     show_values.append('组网模式：'+'多台设备的多跳网络')
+        # 设备编号ID
+        int_index = 0
+        show_values.append('设备编号ID：'+ str(hex(int_values[int_index])))
+
+        # 设备IP：
+        int_index+=1
+        bip = datas[head_len+4*int_index:head_len+4*(int_index+1)]
+        show_values.append('设备IP：'+str(bip[0])+'.'+str(bip[1])+'.'+str(bip[2])+'.'+str(bip[3]))
+
+        # 乱入的组网模式：
+        int_index+=1
+        show_values.append('mode：'+str(int_values[int_index]))
+
         # 基带ID：
-        show_values.append('基带ID：'+ str(hex(int_values[1])))
+        int_index+=1
+        show_values.append('基带ID：'+ str(hex(int_values[int_index])))
+
         # 同步模式：
-        if int_values[2] == 0:
+        int_index+=1
+        if int_values[int_index] == 0:
             show_values.append('同步模式：'+'内同步')
         else:
             show_values.append('同步模式：'+'外同步')
-        # 组网模式：
-        show_values.append('mode：'+str(int_values[0]))
+
         # 速率等级：
-        show_values.append('速率等级：'+ str(int_values[3]) + 'Mbps')
+        int_index+=1
+        show_values.append('速率等级：'+ str(int_values[int_index]) + 'Mbps')
+
         # 中心频率：
-        show_values.append('中心频率：'+ str(int_values[4]/1000000) + 'MHz')
+        int_index+=1
+        show_values.append('中心频率：'+ str(int_values[int_index]/1000000) + 'MHz')
+
         # 语音目的IP：
-        i=5
-        bip = datas[head_len+4*i:head_len+4*(i+1)]
+        int_index+=1
+        bip = datas[head_len+4*int_index:head_len+4*(int_index+1)]
         show_values.append('语音目的IP：'+str(bip[0])+'.'+str(bip[1])+'.'+str(bip[2])+'.'+str(bip[3]))
+
+        # 优先级端口
+        int_index+=1
+        b1 = datas[head_len+4*int_index:head_len+4*int_index+2]
+        i1 = int.from_bytes(b1,byteorder='little',signed=False)
+        b2 = datas[head_len+4*int_index+2:head_len+4*int_index+4]
+        i2 = int.from_bytes(b2,byteorder='little',signed=False)
+        show_values.append('高优先级端口：'+ str(i1) + '中优先级端口：'+ str(i2) )
+
         # 自动开始：
-        if int_values[6] == 0:
+        int_index+=1
+        if int_values[int_index] == 0:
             show_values.append('自动开始：'+'已禁止')
         else:
             show_values.append('自动开始：'+'已启动')
@@ -137,7 +195,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         self.signal_conecting_point_status_msg.emit(show_values)
 
             
-    def control_frame(self, ctype, nvalue):
+    def control_frame_from_int(self, ctype, nvalue):
         """
         生成控制帧，ctype是具体的控制帧类型；nvalue是控制数据int
         """
@@ -155,7 +213,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         ba = ba.__add__(nvalue.to_bytes(length=4,byteorder='little',signed=True))
         return bytes(ba)
 
-    def control_frame1(self, ctype, nvalue):
+    def control_frame_from_bytes(self, ctype, nvalue):
         """
         生成控制帧，ctype是具体的控制帧类型；nvalue是控制数据bytes
         """
@@ -173,7 +231,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         ba = ba.__add__(bytes([0,0]))
         return bytes(ba)
 
-    def control_frame0(self, ctype):
+    def control_frame_empty(self, ctype):
         """
         生成空控制帧，ctype是具体的控制帧类型；
         """
@@ -195,7 +253,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         value = self.id_settint_comboBox.currentText()
         nvalue = int(value)
         send_msg = ("id=" + value)
-        self.control_udp_send(self.control_frame(self.__FRAME_STYPE_CTRL_ID, nvalue))
+        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_ID, nvalue))
         return send_msg
 
     def control_udp_send_frequency(self):
@@ -209,7 +267,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         else:
             nvalue = 256
             send_msg = "unfixed_frequency"
-        self.control_udp_send(self.control_frame(self.__FRAME_STYPE_CTRL_RATEL, nvalue))
+        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_RATEL, nvalue))
         return send_msg
 
     def control_udp_send_synchronization(self):
@@ -224,7 +282,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
             way = "out"
             nvalue = 1
         send_msg = ("synchronization_way=" + way)
-        self.control_udp_send(self.control_frame(self.__FRAME_STYPE_CTRL_SYNC_MODE, nvalue))
+        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_SYNC_MODE, nvalue))
         return send_msg
 
     def control_udp_send_center_frequency(self):
@@ -234,7 +292,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         value = self.center_frequency_spinBox.text()
         nvalue = int(value) * 1000000
         send_msg = ("center_frequency=" + value + 'MHz')
-        self.control_udp_send(self.control_frame(self.__FRAME_STYPE_CTRL_FERQ, nvalue))
+        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_FERQ, nvalue))
         return send_msg
 
     def control_udp_send_open(self, choose):
@@ -243,7 +301,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         """
         nvalue = int(choose)
         send_msg = ("open=" + str(nvalue))
-        self.control_udp_send(self.control_frame(self.__FRAME_STYPE_CTRL_START, nvalue))
+        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_START, nvalue))
         return send_msg
 
     def control_udp_send_auto(self):
@@ -255,29 +313,39 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         else:
             nvalue = 0
         send_msg = ("auto_start=" + str(nvalue))
-        self.control_udp_send(self.control_frame(self.__FRAME_STYPE_CTRL_START, nvalue))
+        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_START, nvalue))
         return send_msg
 
     def control_udp_send_use_bandwidth(self):
         """
-        发送控制信息，使用带宽
+        发送控制信息，优先级端口
         """
         # value = self.use_bandwidth_doubleSpinBox.text()
         # send_msg = ("use_bandwidth=" + value)
         # self.control_udp_send(send_msg.encode('utf-8'))
         # return send_msg
+        highport = int(self.high_priority_spinBox.text())
+        middleport = int(self.middle_priority_spinBox.text())
+        bh = highport.to_bytes(2,'little',signed=False)
+        bm = middleport.to_bytes(2,'little',signed=False)
+        b = bh+bm
+        self.control_udp_send(self.control_frame_from_bytes(self.__FRAME_STYPE_CTRL_PRI_PORT, b))
+        return 'high=' + str(highport) +'middle=' + str(middleport)
 
         # for test
-        b = bytearray([0xc1, 0xd2, 0, 3, 1,0,0,0,
-        1,2,3,4,
-        1,2,3,4,
-        1,2,3,4,
-        1,2,3,4,
-        1,2,3,4,
-        1,2,3,4,
-        1,2,3,4])
-        self.control_udp_send(b)
-        return "test"
+        # b = bytearray([0xc1, 0xd2, 0, 3, 1,0,0,0,
+        # 1,2,3,4,
+        # 1,2,3,4,
+        # 1,2,3,4,
+        # 1,2,3,4,
+        # 1,2,3,4,
+        # 1,2,3,4,
+        # 1,2,3,4,
+        # 1,2,3,4,
+        # 1,2,3,4,
+        # 1,2,3,4])
+        # self.control_udp_send(b)
+        # return "test"
 
     def control_udp_send_audio_destID(self):
         """
@@ -300,7 +368,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
             print(ret)
             send_msg = str(ret)
         else:
-            self.control_udp_send(self.control_frame1(self.__FRAME_STYPE_CTRL_DST_IP, b))
+            self.control_udp_send(self.control_frame_from_bytes(self.__FRAME_STYPE_CTRL_DST_IP, b))
         return send_msg
         
     def control_udp_send(self, datas):
