@@ -6,13 +6,14 @@ import math
 from PyQt5.QtCore import pyqtSignal, QRectF, Qt, QPoint, QObject
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QLabel, \
 	QGraphicsScene, QGraphicsRectItem, QGraphicsItem, QGraphicsEllipseItem, \
-		QGraphicsLineItem
+		QGraphicsLineItem, QGraphicsSimpleTextItem
 
 		
 
 # 网络节点图形
 class NetDeviceItem(QGraphicsEllipseItem):
 	route_info = None
+	text_tag = None
 	def __init__(self, parentView, id, route_info=None):
 		super(NetDeviceItem, self).__init__()
 		self.pa = parentView
@@ -20,6 +21,10 @@ class NetDeviceItem(QGraphicsEllipseItem):
 		self.setBrush(Qt.gray)
 
 		self.setRouteInfo(route_info)
+		if route_info:
+			self.setVisible(True)
+		else:
+			self.setVisible(False)
 		self.setRect(-15, -15, 30, 30)
 		self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable
 				| QGraphicsItem.ItemIsFocusable)
@@ -29,15 +34,26 @@ class NetDeviceItem(QGraphicsEllipseItem):
 		设置网络路由信息
 		return 信息确实更新了返回True，没有更新返回False
 		"""
+		if route_info is not None:
+			self.setVisible(True)
+		else:
+			self.setVisible(False)
 		if self.route_info == route_info:
 			return False
 		else:
 			self.route_info = route_info
 			if self.route_info:
 				self.setBrush(Qt.green)
+				self.setVisible(True)
 			else:
 				self.setBrush(Qt.gray)
 			return True
+	def getTextTag(self):
+		if not self.text_tag:
+			self.text_tag = QGraphicsSimpleTextItem()
+		self.text_tag.setPos(self.pos())
+		self.text_tag.setVisible(self.isVisible())
+		return self.text_tag
 
 	def mousePressEvent(self, event):
 		infos = ['id='+str(self.id)]
@@ -65,6 +81,8 @@ class QMyGraphicsview(QGraphicsView):
 	sigNetDeviceItemPress = pyqtSignal(list)
 	# 设备信息数据，key为设备id
 	devices = {}
+	# 设备id，key为设备id
+	device_tags = {}
 	# 当前选中状态：-1：无选中；0：整体选中：>1:选中节点的ID
 	pressedID = -1
 	# 信号线
@@ -85,6 +103,7 @@ class QMyGraphicsview(QGraphicsView):
 		self.devices[4] = NetDeviceItem(self, 4)
 		self.devices[5] = NetDeviceItem(self, 5)
 		self.devices[6] = NetDeviceItem(self, 6)
+		
 		# test data
 		# self.devices[1].setRouteInfo([[0],[1,4,3,2],[1,4,3],[1,4],[0],[1,6]])
 		# self.devices[2].setRouteInfo([[2,1],[0],[2,4,3],[2,4],[0],[2,6]])
@@ -114,14 +133,18 @@ class QMyGraphicsview(QGraphicsView):
 			self.wholeDeviceItem = WholeDeviceItem(self.rect, self, ["   ",])
 			self.wholeDeviceItem.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable)
 			self.myScene.addItem(self.wholeDeviceItem)
-		# 显示节点
+		# 显示节点，标签
 		for key, value in self.devices.items():
 			x = 150*math.sin(math.radians(60*key))
 			y = 150*math.cos(math.radians(60*key))
 			value.setPos(x, y)
 			self.myScene.addItem(value)
-			text_item = self.myScene.addSimpleText(str(value.id))
-			text_item.setPos(value.pos().x()+20, value.pos().y())
+			self.myScene.addItem(value.getTextTag())
+			# text_item = self.myScene.addSimpleText(str(value.id))
+			# text_item.setPos(value.pos().x()+20, value.pos().y())
+			# text_item.setVisible(value.isVisible())
+			# self.device_tags[key] = text_item
+
 		self.myScene.clearSelection()
 		self.pressedID = -1
 

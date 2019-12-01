@@ -14,10 +14,20 @@ from netGraphics import QMyGraphicsview
 from configparser import NoOptionError
 
 class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
+    Alt_pressed=False
 
     def __init__(self, parent=None):    
         super(MyMainWindow, self).__init__(parent)
         self.setupUi(self)
+
+        # 在状态栏添加数据展示
+        self.labItemMsg = QLabel(u' ')
+        self.labItemMsg.setMinimumWidth(150)
+        self.statusbar.addWidget(self.labItemMsg)
+        self.labServerAdr = QLabel(u' ')
+        self.labServerAdr.setMinimumWidth(150)
+        self.statusbar.addWidget(self.labServerAdr)
+
         self.loadIniFile()
         self.file_server = None
         self.file_client = None
@@ -29,8 +39,8 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.center_frequency_pushButton.clicked.connect(self.sendCenterFrequency)
         self.priority_pushButton.clicked.connect(self.sendPrioritywidth)
         self.audio_pushButton.clicked.connect(self.sendAudioDestID)
-        self.unfixed_frequency_radioButton.clicked.connect(self.slot_btn_unfix_frequency)
-        self.fixed_frequency_radioButton.clicked.connect(self.slot_btn_fix_frequency)
+        # self.unfixed_frequency_radioButton.clicked.connect(self.slot_btn_unfix_frequency)
+        # self.fixed_frequency_radioButton.clicked.connect(self.slot_btn_fix_frequency)
         self.pushButton_open.clicked.connect(self.slot_btn_open)
         self.pushButton_close.clicked.connect(self.slot_btn_close)
         self.auto_start_pushButton.clicked.connect(self.slot_btn_auto)
@@ -79,10 +89,6 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.myView.setMouseTracking(True)
         self.myView.setMinimumSize(QtCore.QSize(410, 410))
         self.horizontalLayout_13.addWidget(self.myView, 3)
-        # 在状态栏添加数据展示
-        self.labItemMsg = QLabel(u' ')
-        self.labItemMsg.setMinimumWidth(150)
-        self.statusbar.addWidget(self.labItemMsg)
         # 绘图信号链接
         self.myView.sigMouseMovePoint.connect(self.slotMouseMovePoint)
         self.myView.sigNetDeviceItemPress.connect(self.slotDeviceItemPress)
@@ -112,6 +118,8 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         # 网络节点上接收命令的IP和port
         self.configIP = config.get('ControlConfig', 'ip')
         self.configPort = config.getint('ControlConfig', 'port')
+        self.labServerAdr.setText(self.configIP + ':' + str(self.configPort))
+
         # 添加速率等级选项
         ilevel=0
         strlevel = config.get('level', 'level' + str(ilevel))
@@ -141,9 +149,10 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.labItemMsg.setText('控制命令已发送：' + msg)
 
     def sendID(self):
-        msg = self.control_udp_send_ID()
-        print(msg)
-        self.labItemMsg.setText('控制命令已发送：' + msg)
+        # msg = self.control_udp_send_ID()
+        # print(msg)
+        # self.labItemMsg.setText('控制命令已发送：' + msg)
+        pass
 
     def sendSynchronization(self):
         msg = self.control_udp_send_synchronization()
@@ -178,10 +187,10 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         print(msg)
         self.labItemMsg.setText('控制命令已发送：' + msg)
 
-    def slot_btn_fix_frequency(self):
-        self.frequency_comboBox.setDisabled(False)
-    def slot_btn_unfix_frequency(self):
-        self.frequency_comboBox.setDisabled(True)
+    # def slot_btn_fix_frequency(self):
+    #     self.frequency_comboBox.setDisabled(False)
+    # def slot_btn_unfix_frequency(self):
+    #     self.frequency_comboBox.setDisabled(True)
 
     def slot_receive_connecting_point_status(self, status):
         """
@@ -207,6 +216,39 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         # 连接时根据用户选择的功能调用函数
         self.control_udp_close()
 
+    # 检测键盘回车按键，函数名字不要改，这是重写键盘事件
+    def keyPressEvent(self, event):
+        #这里event.key（）显示的是按键的编码
+        print("按下：" + str(event.key()))
+        # 举例，这里Qt.Key_A注意虽然字母大写，但按键事件对大小写不敏感
+        # if (event.key() == Qt.Key_Shift):
+        #     print('测试：Key_Shift')
+        # if (event.key() == Qt.Key_Control):
+        #     print('测试：Key_Control')
+        if (event.key() == Qt.Key_Alt):
+            print('测试：Key_Alt')
+            self.Alt_pressed = True
+            
+    def keyReleaseEvent(self, event):
+        #这里event.key（）显示的是按键的编码
+        print("keyReleaseEvent：" + str(event.key()))
+        # if (event.key() == Qt.Key_Shift):
+        #     print('测试：Key_Shift')
+        # if (event.key() == Qt.Key_Control):
+        #     print('测试：Key_Control')
+        if (event.key() == Qt.Key_Alt):
+            print('测试：Key_Alt')
+            self.Alt_pressed = False
+
+    def mouseDoubleClickEvent(self, event):
+        #这里event.key（）显示的是按键的编码
+        print("mouseDoubleClickEvent" + str(event))
+        if self.Alt_pressed:
+            slist = self.connecting_point_status_slm.stringList()
+            if ' ' in slist:
+                print(self.control_udp_send_BEACON_DEV(0))
+            else:
+                print(self.control_udp_send_BEACON_DEV(1))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

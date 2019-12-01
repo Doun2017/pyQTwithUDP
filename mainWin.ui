@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>514</width>
-    <height>568</height>
+    <width>860</width>
+    <height>585</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -47,13 +47,13 @@
         <property name="title">
          <string>控制</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,2,0,1,0,1,0,1">
+        <layout class="QVBoxLayout" name="verticalLayout">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="1,1,1,1">
            <item>
             <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>ID设置:</string>
+              <string>工作模式:</string>
              </property>
             </widget>
            </item>
@@ -90,63 +90,28 @@
           </widget>
          </item>
          <item>
-          <layout class="QGridLayout" name="gridLayout" columnstretch="1,1,1,1,0">
-           <item row="1" column="3" colspan="2">
-            <widget class="QPushButton" name="frequency_pushButton">
-             <property name="text">
-              <string>设置</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QRadioButton" name="fixed_frequency_radioButton">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>固定速率</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">buttonGroup</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QRadioButton" name="unfixed_frequency_radioButton">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>自适应速率</string>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">buttonGroup</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="0" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <item>
             <widget class="QLabel" name="label">
              <property name="text">
               <string>速率等级:</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
+           <item>
             <widget class="QComboBox" name="frequency_comboBox"/>
            </item>
-           <item row="0" column="3" colspan="2">
+           <item>
             <widget class="QLabel" name="label_9">
              <property name="text">
               <string>Mbps</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="frequency_pushButton">
+             <property name="text">
+              <string>设置</string>
              </property>
             </widget>
            </item>
@@ -417,7 +382,4 @@
  </widget>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="buttonGroup"/>
- </buttongroups>
 </ui>

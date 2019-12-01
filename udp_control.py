@@ -19,7 +19,8 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         self.udp_socket = None
         self.dest_address = None
         self.__FRAME_STYPE_CTRL_MESH_MODE   =0x01
-        self.__FRAME_STYPE_CTRL_ID          =0x02
+        #是否主节点设置
+        self.__FRAME_STYPE_CTRL_BEACON_DEV  =0x02
         self.__FRAME_STYPE_CTRL_SYNC_MODE   =0x11
         self.__FRAME_STYPE_CTRL_RATEL       =0x12
         self.__FRAME_STYPE_CTRL_FERQ        =0x13
@@ -77,7 +78,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                     # FRAME_TYPE_STATUS状态帧
                     if recv_msg[4] == 1:
                         # FRAME_STYPE_STATUS_DEV直连节点状态
-                        if recv_msg[5] == 1 and recv_msg.__len__() == 8+4*10:
+                        if recv_msg[5] == 1:
                             self.parse_status_frame(recv_msg)
                         else:
                             # FRAME_STYPE_STATUS_MESH节点组网表
@@ -108,8 +109,8 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         # 组网表分组
         head_len=8
         group_list = []
-        datalen = int.from_bytes(datas[2:4])
-        grouplen = datalen%3
+        datalen = int.from_bytes(datas[2:4],'little')
+        grouplen = datalen//3
         for gindex in range(grouplen):
             beg = head_len+3*gindex
             group_list.append(datas[beg:beg+3])
@@ -117,6 +118,8 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         # 分析此帧组网表的源id
         device_id=0
         for g in group_list:
+            if g[0]==0:
+                continue
             if g[0]==g[1] and g[2]==0:
                 device_id = g[0]
         if device_id==0:
@@ -125,6 +128,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         # 分析路由
         new_group_list = []
         for g in group_list:
+            # 跳数在合法范围，则增加一条一跳的路由信息
             if g[2]>0 and g[2]<6:
                 new_group_list.append([device_id, g[1]])
                 
@@ -136,8 +140,10 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         '''
         int_values = []
         show_values = []
+        datalen = int.from_bytes(datas[2:4],'little')
+        grouplen = datalen//4
         head_len=8
-        for i in range(10):
+        for i in range(grouplen):
             b = datas[head_len+4*i:head_len+4*(i+1)]
             int_values.append(int.from_bytes(b,byteorder='little',signed=True))
         # 设备编号ID
@@ -149,13 +155,15 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         bip = datas[head_len+4*int_index:head_len+4*(int_index+1)]
         show_values.append('设备IP：'+str(bip[0])+'.'+str(bip[1])+'.'+str(bip[2])+'.'+str(bip[3]))
 
-        # 乱入的组网模式：
+        # 组网模式：(不显示)
         int_index+=1
-        show_values.append('mode：'+str(int_values[int_index]))
+        # show_values.append('mode：'+str(int_values[int_index]))
 
-        # 基带ID：
+        # 0为普通节点，1为信标节点即主节点。
         int_index+=1
-        show_values.append('基带ID：'+ str(hex(int_values[int_index])))
+        if int_values[int_index]==1:
+            # 1个空格表示是主节点
+            show_values.append(' ')
 
         # 同步模式：
         int_index+=1
@@ -166,7 +174,8 @@ class UdpControLogic(mainWin.Ui_MainWindow):
 
         # 速率等级：
         int_index+=1
-        show_values.append('速率等级：'+ str(int_values[int_index]) + 'Mbps')
+        s = self.frequency_comboBox.itemText(int_values[int_index])
+        show_values.append('速率等级：'+ s)
 
         # 中心频率：
         int_index+=1
@@ -187,10 +196,25 @@ class UdpControLogic(mainWin.Ui_MainWindow):
 
         # 自动开始：
         int_index+=1
+        if int_index>grouplen-1:
+            return
         if int_values[int_index] == 0:
             show_values.append('自动开始：'+'已禁止')
         else:
             show_values.append('自动开始：'+'已启动')
+
+        # 波形启动状态
+        int_index+=1
+        if int_index>grouplen-1:
+            return
+        if self.pushButton_open:
+            if int_values[int_index] == 0:
+                self.pushButton_open.setEnabled(True)
+                show_values.append('波形已关闭')
+            else:
+                self.pushButton_open.setEnabled(False)
+                show_values.append('波形已开启')
+
 
         self.signal_conecting_point_status_msg.emit(show_values)
 
@@ -246,29 +270,39 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         # CRC
         ba = ba.__add__(bytes([0,0]))
         return bytes(ba)
-    def control_udp_send_ID(self):
+
+    def control_udp_send_BEACON_DEV(self, value):
         """
-        发送控制信息，id配置
+        发送控制信息，是否主节点
         """
-        value = self.id_settint_comboBox.currentText()
-        nvalue = int(value)
-        send_msg = ("id=" + value)
-        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_ID, nvalue))
-        return send_msg
+        # value = self.id_settint_comboBox.currentText()
+        # nvalue = int(value)
+        # send_msg = ("id=" + value)
+        # self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_ID, nvalue))
+        # return send_msg
+        
+        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_BEACON_DEV, value))
+        
+        return "value" + str(value)
 
     def control_udp_send_frequency(self):
         """
         发送控制信息，速率等级
         """
-        if self.fixed_frequency_radioButton.isChecked():
-            value = self.frequency_comboBox.currentText()
-            nvalue = int(value)
-            send_msg = ("frequency=" + value)
-        else:
-            nvalue = 256
-            send_msg = "unfixed_frequency"
+        # if self.fixed_frequency_radioButton.isChecked():
+        #     value = self.frequency_comboBox.currentText()
+        #     nvalue = int(value)
+        #     send_msg = ("frequency=" + value)
+        # else:
+        #     nvalue = 256
+        #     send_msg = "unfixed_frequency"
+
+        nvalue = self.frequency_comboBox.currentIndex()
+        send_msg = ("frequency=" + self.frequency_comboBox.currentText())
+
         self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_RATEL, nvalue))
         return send_msg
+
 
     def control_udp_send_synchronization(self):
         """
