@@ -44,6 +44,7 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.pushButton_open.clicked.connect(self.slot_btn_open)
         self.pushButton_close.clicked.connect(self.slot_btn_close)
         self.auto_start_pushButton.clicked.connect(self.slot_btn_auto)
+        self.use_band_pushButton.clicked.connect(self.sendUseBand)
 
         self.signal_conecting_point_status_msg.connect(self.slot_receive_connecting_point_status)
         self.signal_net_point_status_msg.connect(self.slot_receive_net_point_status)
@@ -122,29 +123,56 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
 
         # 添加速率等级选项
         ilevel=0
-        strlevel = config.get('level', 'level' + str(ilevel))
+        strlevel = config.get('level', 'item' + str(ilevel))
         while strlevel:
             self.frequency_comboBox.addItem(strlevel)
             ilevel += 1
             try:
-                strlevel = config.get('level', 'level' + str(ilevel))
+                strlevel = config.get('level', 'item' + str(ilevel))
             except NoOptionError as ret:
                 print(ret)
                 break
-        # 添加ID选项
+        # 添加工作模式
         ilevel=0
-        strid = config.get('id', 'id' + str(ilevel))
-        while strid:
-            self.id_settint_comboBox.addItem(strid)
+        stritem = config.get('workmode', 'item' + str(ilevel))
+        while stritem:
+            self.id_settint_comboBox.addItem(stritem)
             ilevel += 1
             try:
-                strid = config.get('id', 'id' + str(ilevel))
+                stritem = config.get('workmode', 'item' + str(ilevel))
+            except NoOptionError as ret:
+                print(ret)
+                break
+        # 添加频段选项
+        ilevel=0
+        stritem = config.get('frequencyband', 'item' + str(ilevel))
+        while stritem:
+            self.frequencyband_comboBox.addItem(stritem)
+            ilevel += 1
+            try:
+                stritem = config.get('frequencyband', 'item' + str(ilevel))
+            except NoOptionError as ret:
+                print(ret)
+                break
+        # 添加使用带宽
+        ilevel=0
+        stritem = config.get('useband', 'item' + str(ilevel))
+        while stritem:
+            self.use_band_comboBox.addItem(stritem)
+            ilevel += 1
+            try:
+                stritem = config.get('useband', 'item' + str(ilevel))
             except NoOptionError as ret:
                 print(ret)
                 break
 
     def sendFrequency(self):
         msg = self.control_udp_send_frequency()
+        print(msg)
+        self.labItemMsg.setText('控制命令已发送：' + msg)
+
+    def sendUseBand(self):
+        msg = self.control_udp_send_RES_ALLOC()
         print(msg)
         self.labItemMsg.setText('控制命令已发送：' + msg)
 
@@ -245,7 +273,8 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         print("mouseDoubleClickEvent" + str(event))
         if self.Alt_pressed:
             slist = self.connecting_point_status_slm.stringList()
-            if ' ' in slist:
+            if ':' in slist[0]:
+            # if ' ' in slist:
                 print(self.control_udp_send_BEACON_DEV(0))
             else:
                 print(self.control_udp_send_BEACON_DEV(1))

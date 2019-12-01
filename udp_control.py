@@ -26,6 +26,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         self.__FRAME_STYPE_CTRL_FERQ        =0x13
         self.__FRAME_STYPE_CTRL_DST_IP      =0x14
         self.__FRAME_STYPE_CTRL_PRI_PORT    =0x15
+        self.__FRAME_STYPE_CTRL_RES_ALLOC   =0x16
         self.__FRAME_STYPE_CTRL_AUTOSTART   =0x21
         self.__FRAME_STYPE_CTRL_START       =0xE1
         self.__FRAME_STYPE_CTRL_SAVE_PARAM  =0xF1
@@ -163,12 +164,13 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         int_index+=1
         if int_values[int_index]==1:
             # 1个空格表示是主节点
-            show_values.append(' ')
+            # show_values.append(' ')
+            show_values[0] = show_values[0].replace('：', ':')
 
         # 同步模式：
         int_index+=1
         if int_values[int_index] == 0:
-            show_values.append('同步模式：'+'内同步')
+            show_values.append('同步模式：'+'自同步')
         else:
             show_values.append('同步模式：'+'外同步')
 
@@ -193,6 +195,11 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         b2 = datas[head_len+4*int_index+2:head_len+4*int_index+4]
         i2 = int.from_bytes(b2,byteorder='little',signed=False)
         show_values.append('高优先级端口：'+ str(i1) + '中优先级端口：'+ str(i2) )
+
+        # 用户使用带宽：
+        int_index+=1
+        s = self.use_band_comboBox.itemText(int_values[int_index])
+        show_values.append('用户使用带宽：'+ s)
 
         # 自动开始：
         int_index+=1
@@ -301,6 +308,16 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         send_msg = ("frequency=" + self.frequency_comboBox.currentText())
 
         self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_RATEL, nvalue))
+        return send_msg
+
+    def control_udp_send_RES_ALLOC(self):
+        """
+        发送控制信息，用户使用带宽
+        """
+        nvalue = self.use_band_comboBox.currentIndex()
+        send_msg = ("use band=" + self.use_band_comboBox.currentText())
+
+        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_RES_ALLOC, nvalue))
         return send_msg
 
 
