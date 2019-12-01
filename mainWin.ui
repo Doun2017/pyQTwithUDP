@@ -83,6 +83,62 @@
           </layout>
          </item>
          <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,2,1">
+           <item>
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string>占用频段：</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="comboBox"/>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton">
+             <property name="text">
+              <string>设置</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,1,1,1">
+           <item>
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>中心频点:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="center_frequency_spinBox">
+             <property name="minimum">
+              <number>1000</number>
+             </property>
+             <property name="maximum">
+              <number>2000</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>MHz</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="center_frequency_pushButton">
+             <property name="text">
+              <string>设置</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
           <widget class="Line" name="line_2">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -118,6 +174,27 @@
           </layout>
          </item>
          <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="1,2,1">
+           <item>
+            <widget class="QLabel" name="label_10">
+             <property name="text">
+              <string>占用带宽：</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="use_band_comboBox"/>
+           </item>
+           <item>
+            <widget class="QPushButton" name="use_band_pushButton">
+             <property name="text">
+              <string>设置</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
           <widget class="Line" name="line">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -136,7 +213,7 @@
            <item>
             <widget class="QRadioButton" name="synchronization_inside_radioButton">
              <property name="text">
-              <string>内同步</string>
+              <string>自同步</string>
              </property>
              <property name="checked">
               <bool>true</bool>
@@ -152,48 +229,6 @@
            </item>
            <item>
             <widget class="QPushButton" name="synchronization_pushButton">
-             <property name="text">
-              <string>设置</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <widget class="Line" name="line_4">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,1,1,1">
-           <item>
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>中心频点:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="center_frequency_spinBox">
-             <property name="minimum">
-              <number>1000</number>
-             </property>
-             <property name="maximum">
-              <number>2000</number>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>MHz</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="center_frequency_pushButton">
              <property name="text">
               <string>设置</string>
              </property>
