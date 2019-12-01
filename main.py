@@ -45,6 +45,7 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.pushButton_close.clicked.connect(self.slot_btn_close)
         self.auto_start_pushButton.clicked.connect(self.slot_btn_auto)
         self.use_band_pushButton.clicked.connect(self.sendUseBand)
+        self.id_settint_comboBox.currentIndexChanged.connect(self.onsettint_change)
 
         self.signal_conecting_point_status_msg.connect(self.slot_receive_connecting_point_status)
         self.signal_net_point_status_msg.connect(self.slot_receive_net_point_status)
@@ -214,6 +215,14 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         msg = self.control_udp_send_auto()
         print(msg)
         self.labItemMsg.setText('控制命令已发送：' + msg)
+
+    def onsettint_change(self, current_index):
+        if current_index==0:
+            self.center_frequency_spinBox.setEnabled(True)
+            self.center_frequency_pushButton.setEnabled(True)
+        else:
+            self.center_frequency_spinBox.setDisabled(True)
+            self.center_frequency_pushButton.setDisabled(True)
 
     # def slot_btn_fix_frequency(self):
     #     self.frequency_comboBox.setDisabled(False)
