@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(860, 585)
+        MainWindow.resize(860, 721)
         MainWindow.setAcceptDrops(True)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -231,6 +231,9 @@ class Ui_MainWindow(object):
         self.point_status_listView.setObjectName("point_status_listView")
         self.horizontalLayout_8.addWidget(self.point_status_listView)
         self.verticalLayout_right.addLayout(self.horizontalLayout_8)
+        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton.setObjectName("pushButton")
+        self.verticalLayout_right.addWidget(self.pushButton)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.pushButton_open = QtWidgets.QPushButton(self.centralwidget)
@@ -283,6 +286,7 @@ class Ui_MainWindow(object):
         self.label_8.setText(_translate("MainWindow", "目的地址:"))
         self.audio_pushButton.setText(_translate("MainWindow", "设置"))
         self.groupBox_netStatus.setTitle(_translate("MainWindow", "网络拓扑"))
+        self.pushButton.setText(_translate("MainWindow", "PushButton"))
         self.pushButton_open.setText(_translate("MainWindow", "开始"))
         self.pushButton_close.setText(_translate("MainWindow", "停止"))
         self.auto_start_checkBox.setText(_translate("MainWindow", "波形自启动"))
