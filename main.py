@@ -15,6 +15,7 @@ from configparser import NoOptionError
 
 class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
     Alt_pressed=False
+    Ctrl_pressed=False
 
     def __init__(self, parent=None):    
         super(MyMainWindow, self).__init__(parent)
@@ -46,6 +47,7 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.auto_start_pushButton.clicked.connect(self.slot_btn_auto)
         self.use_band_pushButton.clicked.connect(self.sendUseBand)
         self.id_settint_comboBox.currentIndexChanged.connect(self.onsettint_change)
+        self.clear_all_pushButton.clicked.connect(self.slot_clear_all)
 
         self.signal_conecting_point_status_msg.connect(self.slot_receive_connecting_point_status)
         self.signal_net_point_status_msg.connect(self.slot_receive_net_point_status)
@@ -76,10 +78,13 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         """
         刷新入网节点列表
         """
-        note_list = ['入网节点列表：']
+        in_net_sum = 0
+        note_list = []
         for v in self.myView.devices.values():
             if v.route_info:
                 note_list.append('ID：'+str(v.id))
+                in_net_sum+=1
+        note_list.insert(0, '共有 ' +str(in_net_sum)+ ' 个节点入网：')
         self.device_list_slm.setStringList(note_list)
 
     def initGraphicsUI(self):
@@ -244,6 +249,17 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         # self.refreshAudioDestIDList()
         self.refreshPointsInNet()
         
+    def slot_clear_all(self):
+        """
+        清空数据
+        """
+        self.connecting_point_status_slm.setStringList([])
+        self.point_status_slm.setStringList([])
+        self.device_list_slm.setStringList([])
+        self.myView.removeAll()
+        self.myView.refrashGraphicSystem()
+        self.refreshPointsInNet()
+
     def closeEvent(self, event):
         """
         重写closeEvent方法，实现dialog窗体关闭时执行一些代码
@@ -263,30 +279,40 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         # if (event.key() == Qt.Key_Control):
         #     print('测试：Key_Control')
         if (event.key() == Qt.Key_Alt):
-            print('测试：Key_Alt')
+            print('key pressed：Key_Alt')
             self.Alt_pressed = True
+        if (event.key() == Qt.Key_Control):
+            print('key pressed：Key_Control')
+            self.Ctrl_pressed = True
             
     def keyReleaseEvent(self, event):
         #这里event.key（）显示的是按键的编码
-        print("keyReleaseEvent：" + str(event.key()))
+        print("释放：" + str(event.key()))
         # if (event.key() == Qt.Key_Shift):
         #     print('测试：Key_Shift')
         # if (event.key() == Qt.Key_Control):
         #     print('测试：Key_Control')
         if (event.key() == Qt.Key_Alt):
-            print('测试：Key_Alt')
+            print('key released：Key_Alt')
             self.Alt_pressed = False
+        if (event.key() == Qt.Key_Control):
+            print('key released：Key_Control')
+            self.Ctrl_pressed = False
 
     def mouseDoubleClickEvent(self, event):
         #这里event.key（）显示的是按键的编码
         print("mouseDoubleClickEvent" + str(event))
         if self.Alt_pressed:
             slist = self.connecting_point_status_slm.stringList()
-            if ':' in slist[0]:
-            # if ' ' in slist:
-                print(self.control_udp_send_BEACON_DEV(0))
-            else:
-                print(self.control_udp_send_BEACON_DEV(1))
+            if slist:
+                if ':' in slist[0]:
+                # if ' ' in slist:
+                    print(self.control_udp_send_BEACON_DEV(0))
+                else:
+                    print(self.control_udp_send_BEACON_DEV(1))
+        if self.Ctrl_pressed:
+            self.send_test_data = not self.send_test_data
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

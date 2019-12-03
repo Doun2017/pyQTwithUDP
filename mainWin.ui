@@ -378,9 +378,9 @@
        </layout>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="clear_all_pushButton">
         <property name="text">
-         <string>PushButton</string>
+         <string>清空</string>
         </property>
        </widget>
       </item>

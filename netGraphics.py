@@ -38,6 +38,7 @@ class NetDeviceItem(QGraphicsEllipseItem):
 			self.setVisible(True)
 		else:
 			self.setVisible(False)
+		self.synTextTag()
 		if self.route_info == route_info:
 			return False
 		else:
@@ -48,6 +49,7 @@ class NetDeviceItem(QGraphicsEllipseItem):
 			else:
 				self.setBrush(Qt.gray)
 			return True
+
 	def getTextTag(self):
 		if not self.text_tag:
 			self.text_tag = QGraphicsSimpleTextItem()
@@ -55,11 +57,21 @@ class NetDeviceItem(QGraphicsEllipseItem):
 		self.text_tag.setVisible(self.isVisible())
 		return self.text_tag
 
+	def setTextTag(self, item):
+		self.text_tag = item
+		self.synTextTag()
+
+	def synTextTag(self):
+		if self.text_tag:
+			self.text_tag.setVisible(self.isVisible())
+			self.text_tag.setPos(self.pos().x()+20,self.pos().y())
+
 	def mousePressEvent(self, event):
 		infos = ['id='+str(self.id)]
 		if self.route_info:
 			for item in self.route_info:
-				infos.append(str(self.id)+' to '+str(1+self.route_info.index(item)) + ' : ' +str(item))
+				if len(item)>1:
+					infos.append(str(item[0])+' to '+str(item[-1]) + ' : ' +str(item))
 		self.pa.onItemPressed(infos, self.id)
 
 # 整体图形
@@ -81,8 +93,6 @@ class QMyGraphicsview(QGraphicsView):
 	sigNetDeviceItemPress = pyqtSignal(list)
 	# 设备信息数据，key为设备id
 	devices = {}
-	# 设备id，key为设备id
-	device_tags = {}
 	# 当前选中状态：-1：无选中；0：整体选中：>1:选中节点的ID
 	pressedID = -1
 	# 信号线
@@ -93,21 +103,8 @@ class QMyGraphicsview(QGraphicsView):
 		self.rect = QRectF(-200,-200,400,400)
 		self.myScene = QGraphicsScene(self.rect)
 		self.setScene(self.myScene)
-		self.initData()
 		self.refrashGraphicSystem()
 
-	def initData(self):
-		self.devices[1] = NetDeviceItem(self, 1)
-		self.devices[2] = NetDeviceItem(self, 2)
-		self.devices[3] = NetDeviceItem(self, 3)
-		self.devices[4] = NetDeviceItem(self, 4)
-		self.devices[5] = NetDeviceItem(self, 5)
-		self.devices[6] = NetDeviceItem(self, 6)
-		
-		# test data
-		# self.devices[1].setRouteInfo([[0],[1,4,3,2],[1,4,3],[1,4],[0],[1,6]])
-		# self.devices[2].setRouteInfo([[2,1],[0],[2,4,3],[2,4],[0],[2,6]])
-		
 	def updateDevice(self, id, route_info):
 		"""
 		更新某节点的信息，信息确实改变了的话，更新Graphicsview显示
@@ -121,33 +118,29 @@ class QMyGraphicsview(QGraphicsView):
 					self.removeAllLines()
 					self.drawLines(self.pressedID)
 
-
 	def refrashGraphicSystem(self):
 		"""
-		重新画整个拓扑图
+		重新定义整个拓扑图
 		"""
-		# 清除所有item
-		# self.myScene.clear()
 		# 显示scene边框
-		if self.wholeDeviceItem == None:
-			self.wholeDeviceItem = WholeDeviceItem(self.rect, self, ["   ",])
-			self.wholeDeviceItem.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable)
-			self.myScene.addItem(self.wholeDeviceItem)
+		self.wholeDeviceItem = WholeDeviceItem(self.rect, self, ["   ",])
+		self.wholeDeviceItem.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable)
+		self.myScene.addItem(self.wholeDeviceItem)
 		# 显示节点，标签
+		self.devices[1] = NetDeviceItem(self, 1)
+		self.devices[2] = NetDeviceItem(self, 2)
+		self.devices[3] = NetDeviceItem(self, 3)
+		self.devices[4] = NetDeviceItem(self, 4)
+		self.devices[5] = NetDeviceItem(self, 5)
+		self.devices[6] = NetDeviceItem(self, 6)
 		for key, value in self.devices.items():
 			x = 150*math.sin(math.radians(60*key))
 			y = 150*math.cos(math.radians(60*key))
 			value.setPos(x, y)
 			self.myScene.addItem(value)
-			self.myScene.addItem(value.getTextTag())
-			# text_item = self.myScene.addSimpleText(str(value.id))
-			# text_item.setPos(value.pos().x()+20, value.pos().y())
-			# text_item.setVisible(value.isVisible())
-			# self.device_tags[key] = text_item
-
+			value.setTextTag(self.myScene.addSimpleText(str(value.id)))
 		self.myScene.clearSelection()
 		self.pressedID = -1
-
 
 	def mouseMoveEvent(self, evt):
 		self.sigMouseMovePoint.emit(evt.pos())
@@ -167,6 +160,12 @@ class QMyGraphicsview(QGraphicsView):
 		for item in self.line_items:
 			self.myScene.removeItem(item)
 		self.line_items.clear()
+
+	def removeAll(self):
+		self.myScene.clear()
+		self.line_items.clear()
+		self.devices.clear()
+		self.wholeDeviceItem = None
 
 	def drawAllLines(self):
 		"""

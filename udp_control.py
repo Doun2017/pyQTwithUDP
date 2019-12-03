@@ -12,7 +12,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
     signal_conecting_point_status_msg = pyqtSignal(list)
     # 网络节点发来的状态信息
     signal_net_point_status_msg = pyqtSignal(int, list)
-    choose = 0
+    send_test_data = False
 
     def __init__(self):
         super(UdpControLogic, self).__init__()
@@ -60,12 +60,29 @@ class UdpControLogic(mainWin.Ui_MainWindow):
     def control_udp_sendontime_concurrency(self):
         while True:
             self.control_udp_send(self.control_frame_empty(0))
+            if self.send_test_data:
+                # for test
+                b = bytearray([0xc1, 0xd2, 0x30, 0x0, 1,1,0,0,
+                1,2,3,4,
+                1,2,3,4,
+                1,2,3,4,
+                1,2,3,4,
+                1,2,3,4,
+                1,0,0,0,
+                1,2,3,4,
+                1,2,3,4,
+                1,2,3,4,
+                1,0,0,0,
+                1,2,3,4,
+                1,2,3,4])
+                self.control_udp_send(b)
+
             try:
                 time.sleep(5)
             except Exception as ret:
                 print(ret)
 
-
+    send1=0
     def control_udp_server_concurrency(self):
         """
         线程函数，UDP数据接收
@@ -86,15 +103,14 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                             self.parse_net_status_frame(recv_msg)
 
                     # test发布状态信息
-                    # if recv_msg.__len__()%2 == 0:
-                    #     if self.choose == 0:
-                    #         self.signal_net_point_status_msg.emit(1, [[0],[1,4,3,2],[1,4,3],[1,4],[0],[1,6]])
-                    #         self.choose = 1
-                    #     else:
-                    #         self.signal_net_point_status_msg.emit(1, [[0],[1,4,3,2],[1,4,3],[1,4],[0],[0]])
-                    #         self.choose = 0
-                    # else:
-                    #     self.signal_net_point_status_msg.emit(2, [[2,1],[0],[2,4,3],[2,4],[0],[2,6]])
+                    if self.send_test_data:
+                        # if self.send1%7==1:
+                        #     self.signal_net_point_status_msg.emit(1, [[0],[1,4,3,2],[1,4,3],[1,4],[0],[1,6]])
+                        # else:
+                        #     self.signal_net_point_status_msg.emit(1, [[0],[1,4,3,2],[1,4,3],[1,4],[0],[0]])
+                        self.signal_net_point_status_msg.emit(1, [[0],[1,2],[0],[0],[0],[0]])
+                        self.signal_net_point_status_msg.emit(2, [[2,1],[0],[0],[0],[0],[0]])
+                        self.send1+=1
 
             except Exception as ret:
                 msg = 'udp_socket 接收失败\n'
@@ -382,21 +398,6 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         b = bh+bm
         self.control_udp_send(self.control_frame_from_bytes(self.__FRAME_STYPE_CTRL_PRI_PORT, b))
         return 'high=' + str(highport) +'middle=' + str(middleport)
-
-        # for test
-        # b = bytearray([0xc1, 0xd2, 0, 3, 1,0,0,0,
-        # 1,2,3,4,
-        # 1,2,3,4,
-        # 1,2,3,4,
-        # 1,2,3,4,
-        # 1,2,3,4,
-        # 1,2,3,4,
-        # 1,2,3,4,
-        # 1,2,3,4,
-        # 1,2,3,4,
-        # 1,2,3,4])
-        # self.control_udp_send(b)
-        # return "test"
 
     def control_udp_send_audio_destID(self):
         """
