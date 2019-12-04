@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(860, 721)
+        MainWindow.resize(701, 576)
         MainWindow.setAcceptDrops(True)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -176,9 +176,11 @@ class Ui_MainWindow(object):
         self.priority_pushButton = QtWidgets.QPushButton(self.groupBox_control)
         self.priority_pushButton.setObjectName("priority_pushButton")
         self.horizontalLayout_4.addWidget(self.priority_pushButton)
-        self.horizontalLayout_4.setStretch(0, 1)
-        self.horizontalLayout_4.setStretch(2, 1)
-        self.horizontalLayout_4.setStretch(4, 1)
+        self.horizontalLayout_4.setStretch(0, 6)
+        self.horizontalLayout_4.setStretch(1, 3)
+        self.horizontalLayout_4.setStretch(2, 3)
+        self.horizontalLayout_4.setStretch(3, 3)
+        self.horizontalLayout_4.setStretch(4, 5)
         self.verticalLayout.addLayout(self.horizontalLayout_4)
         self.verticalLayout_left.addWidget(self.groupBox_control)
         self.groupBox_2 = QtWidgets.QGroupBox(self.centralwidget)

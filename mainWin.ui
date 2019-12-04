@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>860</width>
-    <height>721</height>
+    <width>701</width>
+    <height>576</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -244,7 +244,7 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,0,1,0,1">
+          <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="6,3,3,3,5">
            <item>
             <widget class="QLabel" name="label_6">
              <property name="text">
