@@ -272,10 +272,10 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         ba = ba.__add__(bytes([2]))
         # 控制类型
         ba = ba.__add__(bytes([ctype]))
-        # 控制数据
-        ba = ba.__add__(nvalue)
         # CRC
         ba = ba.__add__(bytes([0,0]))
+        # 控制数据
+        ba = ba.__add__(nvalue)
         return bytes(ba)
 
     def control_frame_empty(self, ctype):
@@ -288,8 +288,6 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         ba = ba.__add__(len.to_bytes(length=2,byteorder='little',signed=True))
         # 帧类型 0x2
         ba = ba.__add__(bytes([2]))
-        # 控制类型
-        ba = ba.__add__(bytes([ctype]))
         # CRC
         ba = ba.__add__(bytes([0,0]))
         return bytes(ba)
@@ -414,8 +412,8 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         send_msg = ("destID=" + adr)
         try:
             l = adr.split('.')
-            print(bytes([int(l[3]), int(l[2]), int(l[1]), int(l[0])]))
-            b = bytes([int(l[3]), int(l[2]), int(l[1]), int(l[0])])
+            print(bytes([int(l[0]), int(l[1]), int(l[2]), int(l[3])]))
+            b = bytes([int(l[0]), int(l[1]), int(l[2]), int(l[3])])
         except Exception as ret:
             print(ret)
             send_msg = str(ret)
