@@ -2,40 +2,46 @@
  
 
 import sys 
+import threading
+import time
 import math 
 from PyQt5.QtCore import pyqtSignal, QRectF, Qt, QPoint, QObject
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QLabel, \
 	QGraphicsScene, QGraphicsRectItem, QGraphicsItem, QGraphicsEllipseItem, \
 		QGraphicsLineItem, QGraphicsSimpleTextItem
 
+import stopThreading 
+
 		
 
-# 网络节点图形
+# 网络节点图形 route_info==None时不可见，route_info=[]时为灰色，route_info有内容时为绿色
 class NetDeviceItem(QGraphicsEllipseItem):
 	route_info = None
 	text_tag = None
+	last_time = 0
 	def __init__(self, parentView, id, route_info=None):
 		super(NetDeviceItem, self).__init__()
 		self.pa = parentView
 		self.id = id
 		self.setBrush(Qt.gray)
-
 		self.setRouteInfo(route_info)
-		if route_info:
-			self.setVisible(True)
-		else:
-			self.setVisible(False)
 		self.setRect(-15, -15, 30, 30)
 		self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable
 				| QGraphicsItem.ItemIsFocusable)
+		self.last_time = 0
 
 	def setRouteInfo(self, route_info):
 		"""
 		设置网络路由信息
 		return 信息确实更新了返回True，没有更新返回False
 		"""
+		self.last_time = time.time()
 		if route_info is not None:
 			self.setVisible(True)
+			if len(route_info)>0:
+				self.setBrush(Qt.green)
+			else:
+				self.setBrush(Qt.gray)
 		else:
 			self.setVisible(False)
 		self.synTextTag()
@@ -43,12 +49,13 @@ class NetDeviceItem(QGraphicsEllipseItem):
 			return False
 		else:
 			self.route_info = route_info
-			if self.route_info:
-				self.setBrush(Qt.green)
-				self.setVisible(True)
-			else:
-				self.setBrush(Qt.gray)
 			return True
+
+	def checkOutTime(self):
+		if self.route_info:
+			return time.time() - self.last_time > 5.1
+		else:
+			return False
 
 	def getTextTag(self):
 		if not self.text_tag:
@@ -88,7 +95,9 @@ class WholeDeviceItem(QGraphicsRectItem):
 # 整体网络状态示意图
 class QMyGraphicsview(QGraphicsView):
 	wholeDeviceItem = None
+	running = True
 	# 信号量
+	signal_offline_msg = pyqtSignal(int)
 	sigMouseMovePoint = pyqtSignal(QPoint)
 	sigNetDeviceItemPress = pyqtSignal(list)
 	# 设备信息数据，key为设备id
@@ -104,8 +113,38 @@ class QMyGraphicsview(QGraphicsView):
 		self.myScene = QGraphicsScene(self.rect)
 		self.setScene(self.myScene)
 		self.refrashGraphicSystem()
+		# 启动定时检测是否更新了路由信息
+		self.check_ontime_th = threading.Thread(target=self.check_online_ontime_func)
+		self.check_ontime_th.start()
+		self.signal_offline_msg.connect(self.deviceOffline)
 
-	def updateDevice(self, id, route_info):
+	def __del__(self):
+		# stopThreading.stop_thread(self.check_ontime_th)
+		self.running = False
+
+	def check_online_ontime_func(self):
+		'''
+		线程函数，检测节点是否在线
+		'''
+		try:
+			while(self.running):
+				for key, item in self.devices.items():
+					if item.checkOutTime():
+						self.signal_offline_msg.emit(key)
+						# item.setRouteInfo([])
+						# self.updateLines(key, [])
+						# self.devices[key] = NetDeviceItem(self, key, [])
+						# self.devices[key].setPos(item.pos())
+						# self.myScene.addItem(self.devices[key])
+						# self.myScene.removeItem(item)
+				time.sleep(1)
+		except Exception as ret:
+			print(ret)
+
+	def deviceOffline(self, id):
+		self.updateLines(id, [])
+
+	def updateLines(self, id, route_info):
 		"""
 		更新某节点的信息，信息确实改变了的话，更新Graphicsview显示
 		"""
@@ -127,12 +166,12 @@ class QMyGraphicsview(QGraphicsView):
 		self.wholeDeviceItem.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable)
 		self.myScene.addItem(self.wholeDeviceItem)
 		# 显示节点，标签
-		self.devices[1] = NetDeviceItem(self, 1)
-		self.devices[2] = NetDeviceItem(self, 2)
-		self.devices[3] = NetDeviceItem(self, 3)
-		self.devices[4] = NetDeviceItem(self, 4)
-		self.devices[5] = NetDeviceItem(self, 5)
-		self.devices[6] = NetDeviceItem(self, 6)
+		self.devices[1] = NetDeviceItem(self, 1, None)
+		self.devices[2] = NetDeviceItem(self, 2, None)
+		self.devices[3] = NetDeviceItem(self, 3, None)
+		self.devices[4] = NetDeviceItem(self, 4, None)
+		self.devices[5] = NetDeviceItem(self, 5, None)
+		self.devices[6] = NetDeviceItem(self, 6, None)
 		for key, value in self.devices.items():
 			x = 150*math.sin(math.radians(60*key))
 			y = 150*math.cos(math.radians(60*key))

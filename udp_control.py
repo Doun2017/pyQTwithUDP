@@ -1,7 +1,13 @@
 import socket
+import sys
+import os
+
 import threading
 import time
+import random
 from PyQt5.QtCore import pyqtSignal
+import configparser
+from configparser import NoOptionError
 
 import mainWin
 import stopThreading
@@ -13,6 +19,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
     # 网络节点发来的状态信息
     signal_net_point_status_msg = pyqtSignal(int, list)
     send_test_data = False
+    first_time_receive_status = True
 
     def __init__(self):
         super(UdpControLogic, self).__init__()
@@ -63,11 +70,11 @@ class UdpControLogic(mainWin.Ui_MainWindow):
             if self.send_test_data:
                 # for test
                 b = bytearray([0xc1, 0xd2, 0x30, 0x0, 1,1,0,0,
+                1,2,3,0x94,
                 1,2,3,4,
                 1,2,3,4,
                 1,2,3,4,
-                1,2,3,4,
-                1,2,3,4,
+                0,0,0,0,
                 1,0,0,0,
                 1,2,3,4,
                 1,2,3,4,
@@ -76,9 +83,13 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                 1,2,3,4,
                 1,2,3,4])
                 self.control_udp_send(b)
-
             try:
                 time.sleep(5)
+            except SystemExit as error:
+                print(error)
+                print("心跳发送定时器退出!")
+                os._exit(0)
+                # sys.exit() 一般来说os._exit() 用于在线程中退出，sys.exit() 用于在主线程中退出。
             except Exception as ret:
                 print(ret)
 
@@ -113,7 +124,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                         self.send1+=1
 
             except Exception as ret:
-                msg = 'udp_socket 接收失败\n'
+                msg = 'UDP接收线程退出！\n'
                 time.sleep(0.1)
                 print(msg)
                 print(ret)
@@ -162,7 +173,12 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         head_len=8
         for i in range(grouplen):
             b = datas[head_len+4*i:head_len+4*(i+1)]
-            int_values.append(int.from_bytes(b,byteorder='little',signed=True))
+            int_values.append(int.from_bytes(b,byteorder='little',signed=False))
+        # 总的网络速率
+        band_all=0
+        # 当前设备分配的时隙
+        time_slot_my=0
+
         # 设备编号ID
         int_index = 0
         show_values.append('设备编号ID：'+ str(hex(int_values[int_index])))
@@ -185,15 +201,35 @@ class UdpControLogic(mainWin.Ui_MainWindow):
 
         # 同步模式：
         int_index+=1
+        # 若保存值为外同步，第一次收到的状态为内同则设置设备为外同步
+        if self.first_time_receive_status:
+            self.first_time_receive_status = False
+            if int_values[int_index] == 0:
+                config = configparser.ConfigParser()    # 注意大小写
+                path = "config.ini"
+                config.read(path)
+                #item4为内外同步设置，后期若修改此处需及时更改
+                if config.get("save", 'item4') != '0':
+                    self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_SYNC_MODE, 1))
+                    int_values[int_index] = 1
         if int_values[int_index] == 0:
             show_values.append('同步模式：'+'自同步')
         else:
             show_values.append('同步模式：'+'外同步')
 
+
         # 速率等级：
         int_index+=1
         s = self.frequency_comboBox.itemText(int_values[int_index])
         show_values.append('速率等级：'+ s)
+        if int_values[int_index] == 1:
+            band_all = 2
+        elif int_values[int_index] == 2:
+            band_all = 10
+        elif int_values[int_index] == 3:
+            band_all = 20
+        elif int_values[int_index] == 4:
+            band_all = 54
 
         # 中心频率：
         int_index+=1
@@ -216,6 +252,16 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         int_index+=1
         s = self.use_band_comboBox.itemText(int_values[int_index])
         show_values.append('用户使用带宽：'+ s)
+        if int_values[int_index] == 0:
+            time_slot_my =11
+        elif int_values[int_index] == 1:
+            time_slot_my =6
+        elif int_values[int_index] == 2:
+            time_slot_my =6
+        elif int_values[int_index] == 3:
+            time_slot_my =1
+        elif int_values[int_index] == 4:
+            time_slot_my =1
 
         # 自动开始：
         int_index+=1
@@ -238,10 +284,36 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                 self.pushButton_open.setEnabled(False)
                 show_values.append('波形已开启')
 
+        # 根据当前速率、占用带宽计算出可用带宽、时延和时延抖动
+        time_slot_rest = 12-time_slot_my
+        if time_slot_rest>=0 and time_slot_rest<12:
+            srest_band = '可用带宽：' + "%.2f" % (time_slot_rest/12 * band_all) + 'Mbps'
+            stime_delay = '时延：' +  "%.2f" % (time_slot_rest*1.9) + 'ms'
+            stime_delay_shake = '时延抖动：' "%.2f" %(1+random.random()) + 'ms'
+            show_values.append(srest_band)
+            show_values.append(stime_delay)
+            show_values.append(stime_delay_shake)
 
         self.signal_conecting_point_status_msg.emit(show_values)
+        self.save(int_values)
 
-            
+
+
+    def save(self, ivalues):
+        '''
+        将直连设备的状态值保存到ini文件
+        '''
+        config = configparser.ConfigParser()    # 注意大小写
+        path = "config.ini"
+        config.read(path)
+        # 网络节点上接收命令的IP和port
+        i = 0
+        for item in ivalues:
+            config.set('save', 'item'+str(i), str(item))
+            i+=1
+        config.write(open(path, "w"))
+
+
     def control_frame_from_int(self, ctype, nvalue):
         """
         生成控制帧，ctype是具体的控制帧类型；nvalue是控制数据int

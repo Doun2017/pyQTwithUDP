@@ -245,7 +245,7 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         """
         收到网络节点信息
         """
-        self.myView.updateDevice(id, status)
+        self.myView.updateLines(id, status)
         # self.refreshAudioDestIDList()
         self.refreshPointsInNet()
         
