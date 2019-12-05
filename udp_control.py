@@ -34,6 +34,8 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         self.__FRAME_STYPE_CTRL_DST_IP      =0x14
         self.__FRAME_STYPE_CTRL_PRI_PORT    =0x15
         self.__FRAME_STYPE_CTRL_RES_ALLOC   =0x16
+        self.__FRAME_STYPE_CTRL_WORK_MODE   =0x17
+        self.__FRAME_STYPE_CTRL_FERQ_RANGE  =0x18
         self.__FRAME_STYPE_CTRL_AUTOSTART   =0x21
         self.__FRAME_STYPE_CTRL_START       =0xE1
         self.__FRAME_STYPE_CTRL_SAVE_PARAM  =0xF1
@@ -377,6 +379,26 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_BEACON_DEV, value))
         
         return "value" + str(value)
+
+    def control_udp_send_workmode(self):
+        """
+        发送控制信息，工作模式：0定频 1自适应选聘
+        """
+        nvalue = self.id_settint_comboBox.currentIndex()
+        send_msg = ("wordmode=" + self.id_settint_comboBox.currentText())
+
+        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_WORK_MODE, nvalue))
+        return send_msg
+        
+    def control_udp_send_frequencyband(self):
+        """
+        发送控制信息，频带选择
+        """
+        nvalue = self.frequencyband_comboBox.currentIndex()
+        send_msg = ("frequencyband=" + self.frequencyband_comboBox.currentText())
+
+        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_FERQ_RANGE, nvalue))
+        return send_msg
 
     def control_udp_send_frequency(self):
         """
