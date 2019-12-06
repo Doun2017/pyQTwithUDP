@@ -43,28 +43,7 @@ class CandlestickItem(pg.GraphicsObject):
         
 def chart():
     # hist_data = ts.get_hist_data('600519',start='2017-05-01',end='2017-11-24')
-    data_list = []
-    axis = []
-    # for dates,row in hist_data.iterrows():
-    for dates,row in {}:
-        # 将时间转换为数字
-        date_time = datetime.datetime.strptime(dates,'%Y-%m-%d')
-        t = date2num(date_time)
-        # t = dict(enumerate(datetime))
-        open,high,close,low = row[:4]
-        datas = (t,open,close,low,high)
-        data_list.append(datas)
-        axis.append(t)
-    # print(axis)
-
-    #test
-    data_list.append((1,1))
-    data_list.append((2,1))
-    data_list.append((31.44,1))
-
-
-    axis_dict = dict(enumerate(axis))
-    item = CandlestickItem(data_list)
+    item = CandlestickItem([])
     plt = pg.PlotWidget()
     # print(plt.getAxis('bottom'))
     plt.addItem(item)

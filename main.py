@@ -110,12 +110,6 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.verticalLayout_right.addWidget(self.frequency_plt) 
         self.verticalLayout_right.addWidget(self.frequency_plt1) 
 
-        data_list = []
-        data_list.append((1,1))
-        data_list.append((1,13))
-        data_list.append((1,111))
-        self.frequency_item.updataData(data_list)
-
         # 绘图信号链接
         self.myView.sigMouseMovePoint.connect(self.slotMouseMovePoint)
         self.myView.sigNetDeviceItemPress.connect(self.slotDeviceItemPress)
@@ -279,15 +273,23 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         """
         收到网络干扰频谱信息
         """
-        if self.frequency_item:
-            self.frequency_item.updataData(data_list[:2303])
-        if self.frequency_item1:
-            self.frequency_item1.updataData(data_list[2303:])
+        # if self.frequency_item:
+        #     self.frequency_item.updataData(data_list[:2303])
+        # if self.frequency_item1:
+        #     self.frequency_item1.updataData(data_list[2303:])
 
-        self.frequency_plt.showGrid(x=False,y=False)
-        self.frequency_plt.showGrid(x=True,y=True)
-        self.frequency_plt1.showGrid(x=False,y=False)
-        self.frequency_plt1.showGrid(x=True,y=True)
+        # self.frequency_plt.showGrid(x=False,y=False)
+        # self.frequency_plt.showGrid(x=True,y=True)
+        # self.frequency_plt1.showGrid(x=False,y=False)
+        # self.frequency_plt1.showGrid(x=True,y=True)
+
+        self.frequency_plt.removeItem(self.frequency_item)
+        self.frequency_item = CandlestickItem.CandlestickItem(data_list[:2303])
+        self.frequency_plt.addItem(self.frequency_item)
+        self.frequency_plt1.removeItem(self.frequency_item1)
+        self.frequency_item1 = CandlestickItem.CandlestickItem(data_list[2303:])
+        self.frequency_plt1.addItem(self.frequency_item1)
+
 
     def slot_clear_all(self):
         """
