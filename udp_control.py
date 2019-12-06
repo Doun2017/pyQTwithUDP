@@ -442,6 +442,9 @@ class UdpControLogic(mainWin.Ui_MainWindow):
             nvalue = 1
         send_msg = ("synchronization_way=" + way)
         self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_SYNC_MODE, nvalue))
+        # 保存内外同步状态，发送完内外同步命令后接着发送一条保存命令。
+        self.control_udp_send(self.control_frame_from_int(self.__FRAME_STYPE_CTRL_SAVE_PARAM, nvalue))
+        
         return send_msg
 
     def control_udp_send_center_frequency(self):
