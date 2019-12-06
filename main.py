@@ -7,16 +7,23 @@ if hasattr(sys, 'frozen'):
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal, QRectF, Qt, QStringListModel
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QLabel, QGraphicsScene, QGraphicsRectItem, QGraphicsItem, QGraphicsEllipseItem
+import pyqtgraph as pg
 
 import udp_control
 import stopThreading
 from netGraphics import QMyGraphicsview
 from configparser import NoOptionError
+import CandlestickItem
+from CandlestickItem import chart
+
 
 class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
     Alt_pressed=False
     Ctrl_pressed=False
-
+    frequency_item=None
+    frequency_plt=None
+    frequency_item1=None
+    frequency_plt1=None
     def __init__(self, parent=None):    
         super(MyMainWindow, self).__init__(parent)
         self.setupUi(self)
@@ -52,6 +59,7 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
 
         self.signal_conecting_point_status_msg.connect(self.slot_receive_connecting_point_status)
         self.signal_net_point_status_msg.connect(self.slot_receive_net_point_status)
+        self.signal_net_point_frequency_msg.connect(self.slot_receive_net_point_frequency)
 
         self.netStatus_listView.setVisible(False)
         # 启动UDP
@@ -97,6 +105,17 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.myView.setMouseTracking(True)
         self.myView.setMinimumSize(QtCore.QSize(410, 410))
         self.horizontalLayout_13.addWidget(self.myView, 3)
+        self.frequency_plt, self.frequency_item = chart()
+        self.frequency_plt1, self.frequency_item1 = chart()
+        self.verticalLayout_right.addWidget(self.frequency_plt) 
+        self.verticalLayout_right.addWidget(self.frequency_plt1) 
+
+        data_list = []
+        data_list.append((1,1))
+        data_list.append((1,13))
+        data_list.append((1,111))
+        self.frequency_item.updataData(data_list)
+
         # 绘图信号链接
         self.myView.sigMouseMovePoint.connect(self.slotMouseMovePoint)
         self.myView.sigNetDeviceItemPress.connect(self.slotDeviceItemPress)
@@ -255,7 +274,21 @@ class MyMainWindow(QMainWindow, udp_control.UdpControLogic):
         self.myView.updateLines(id, status)
         # self.refreshAudioDestIDList()
         self.refreshPointsInNet()
-        
+
+    def slot_receive_net_point_frequency(self, data_list):
+        """
+        收到网络干扰频谱信息
+        """
+        if self.frequency_item:
+            self.frequency_item.updataData(data_list[:2303])
+        if self.frequency_item1:
+            self.frequency_item1.updataData(data_list[2303:])
+
+        self.frequency_plt.showGrid(x=False,y=False)
+        self.frequency_plt.showGrid(x=True,y=True)
+        self.frequency_plt1.showGrid(x=False,y=False)
+        self.frequency_plt1.showGrid(x=True,y=True)
+
     def slot_clear_all(self):
         """
         清空数据

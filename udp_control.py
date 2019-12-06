@@ -18,6 +18,8 @@ class UdpControLogic(mainWin.Ui_MainWindow):
     signal_conecting_point_status_msg = pyqtSignal(list)
     # 网络节点发来的状态信息
     signal_net_point_status_msg = pyqtSignal(int, list)
+    # 直连节点发来的干扰频谱信息
+    signal_net_point_frequency_msg = pyqtSignal(list)
     send_test_data = False
     first_time_receive_status = True
 
@@ -103,7 +105,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         """
         while True:
             try:
-                recv_msg, recv_addr = self.udp_socket.recvfrom(10240)
+                recv_msg, recv_addr = self.udp_socket.recvfrom(14240)
                 if recv_msg:
                     print('control_udp_server receive:' + recv_msg.hex())
                     # FRAME_TYPE_STATUS状态帧
@@ -111,9 +113,13 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                         # FRAME_STYPE_STATUS_DEV直连节点状态
                         if recv_msg[5] == 1:
                             self.parse_status_frame(recv_msg)
-                        else:
+                        elif recv_msg[5] == 2:
                             # FRAME_STYPE_STATUS_MESH节点组网表
                             self.parse_net_status_frame(recv_msg)
+                        elif recv_msg[5] == 3:
+                            # FRAME_STYPE_STATUS_SENS频谱
+                            print('收到频谱数据')
+                            self.parse_net_status_frequency(recv_msg)
 
                     # test发布状态信息
                     if self.send_test_data:
@@ -123,6 +129,17 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                         #     self.signal_net_point_status_msg.emit(1, [[0],[1,4,3,2],[1,4,3],[1,4],[0],[0]])
                         self.signal_net_point_status_msg.emit(1, [[0],[1,2],[0],[0],[0],[0]])
                         self.signal_net_point_status_msg.emit(2, [[2,1],[0],[0],[0],[0],[0]])
+                        # datalist=[]
+                        # datalist.append((1429,random.randint(-127,0)))
+                        # for i in range(1,3328):
+                        #     if i<2303:
+                        #         x = 1429 + i/90
+                        #     else:
+                        #         x = 2304+i/40
+                        #     y = datalist[i-1][1]+random.randint(-1,1)
+                        #     datalist.append((x,y))
+                        # self.signal_net_point_frequency_msg.emit(datalist)
+                        self.parse_net_status_frequency_test()
                         self.send1+=1
 
             except Exception as ret:
@@ -131,6 +148,64 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                 print(msg)
                 print(ret)
                 break
+
+    def parse_net_status_frequency_test(self):
+        # 组合int数组
+        int_values = []
+        int_values.append(random.randint(-127,0))
+        for i in range(1,3328):
+            ivalue = int_values[i-1]+random.randint(-1,1)
+            if ivalue>0:
+                ivalue=0
+            if ivalue<-127:
+                ivalue = -127
+            int_values.append(ivalue)
+
+        # 转为可展示数据
+        datalist=[]
+        for i in range(len(int_values)):
+            if i<2303:
+                x = 1429 + i*90/2303
+            else:
+                x = 1670 + (i-2303)*40/1023
+            y = int_values[i]
+            datalist.append((x,y))
+        self.signal_net_point_frequency_msg.emit(datalist)
+        
+        
+    def parse_net_status_frequency(self, datas):
+        # 频谱数据分组
+        head_len=8
+        group_list = []
+        datalen = int.from_bytes(datas[2:4],'little')
+        grouplen = datalen//4
+        if grouplen != 3328:
+            return
+
+        # 组合int数组
+        int_values = []
+        for gindex in range(grouplen):
+            beg = head_len+4*gindex
+            b = datas[beg:beg+4]
+            group_list.append(b)
+            sig_int = int.from_bytes(b,byteorder='little',signed=True)
+            if sig_int>0:
+                sig_int = 0
+            elif sig_int<-127:
+                sig_int = -127
+            int_values.append(sig_int)
+
+        # 转为可展示数据
+        datalist=[]
+        for i in range(len(int_values)):
+            if i<2303:
+                x = 1429 + i*90/2303
+            else:
+                x = 1670 + (i-2303)*40/1023
+            y = int_values[i]
+            datalist.append((x,y))
+        self.signal_net_point_frequency_msg.emit(datalist)
+
 
     def parse_net_status_frame(self, datas):
         '''
@@ -264,6 +339,16 @@ class UdpControLogic(mainWin.Ui_MainWindow):
             time_slot_my =1
         elif int_values[int_index] == 4:
             time_slot_my =1
+
+        # 工作模式：
+        int_index+=1
+        s = self.id_settint_comboBox.itemText(int_values[int_index])
+        show_values.append('工作模式：'+ s)
+
+        # 频带选择：
+        int_index+=1
+        s = self.frequencyband_comboBox.itemText(int_values[int_index])
+        show_values.append('频带选择：'+ s)
 
         # 自动开始：
         int_index+=1
