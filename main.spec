@@ -4,11 +4,11 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['C:\\pythonCode\\QBL'],
+             pathex=['D:\\pyQTwithUDP'],
              binaries=[],
              datas=[('libportaudio64bit.dll','.\\_sounddevice_data\\portaudio-binaries'),
-			 ('libportaudio64bit.dll','.'),
-			 ('config.ini','.')],
+				('libportaudio64bit.dll','.'),
+				('config.ini','.')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -28,11 +28,11 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True )
+          console=False )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
-			   a.datas,
+               a.datas,
                strip=False,
                upx=True,
                upx_exclude=[],
