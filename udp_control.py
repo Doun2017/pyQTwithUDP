@@ -22,6 +22,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
     signal_net_point_frequency_msg = pyqtSignal(list)
     send_test_data = False
     first_time_receive_status = True
+    try_receive_udp_data = True
 
     def __init__(self):
         super(UdpControLogic, self).__init__()
@@ -103,7 +104,7 @@ class UdpControLogic(mainWin.Ui_MainWindow):
         线程函数，UDP数据接收
         :return:
         """
-        while True:
+        while self.try_receive_udp_data:
             try:
                 recv_msg, recv_addr = self.udp_socket.recvfrom(14240)
                 if recv_msg:
@@ -141,13 +142,13 @@ class UdpControLogic(mainWin.Ui_MainWindow):
                         # self.signal_net_point_frequency_msg.emit(datalist)
                         self.parse_net_status_frequency_test()
                         self.send1+=1
-
             except Exception as ret:
-                msg = 'UDP接收线程退出！\n'
-                time.sleep(0.1)
-                print(msg)
                 print(ret)
-                break
+                time.sleep(0.1)
+                continue
+        msg = 'UDP接收线程退出！\n'
+        print(msg)
+        
 
     def parse_net_status_frequency_test(self):
         # 组合int数组
